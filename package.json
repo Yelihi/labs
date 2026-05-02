@@ -1,0 +1,64 @@
+{
+  "name": "frontend-labs",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.10",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@frontend-labs/react-vite",
+    "dev:react": "turbo run dev --filter=@frontend-labs/react-vite",
+    "dev:next": "turbo run dev --filter=@frontend-labs/next-app",
+    "dev:javascript": "turbo run dev --filter=@frontend-labs/javascript",
+    "dev:typescript": "turbo run dev --filter=@frontend-labs/typescript",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "e2e": "playwright test",
+    "e2e:core": "playwright test --project=chromium --project=firefox --project=webkit",
+    "e2e:full": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:report": "playwright show-report",
+    "lab": "pnpm --filter @frontend-labs/lab-cli lab --",
+    "lab:list": "pnpm --filter @frontend-labs/lab-cli lab -- list",
+    "lab:create": "pnpm --filter @frontend-labs/lab-cli lab -- create",
+    "lab:dev": "pnpm --filter @frontend-labs/lab-cli lab -- dev",
+    "lab:test": "pnpm --filter @frontend-labs/lab-cli lab -- test",
+    "lab:report": "pnpm --filter @frontend-labs/lab-cli lab -- report",
+    "lab:export": "pnpm --filter @frontend-labs/lab-cli lab -- export",
+    "lab:routes": "pnpm --filter @frontend-labs/lab-cli lab -- routes"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.3.0",
+    "fast-glob": "^3.3.3",
+    "fs-extra": "^11.3.4",
+    "handlebars": "^4.7.9",
+    "prettier": "^3.8.3",
+    "react": "^19.2.5",
+    "tsx": "^4.21.0",
+    "turbo": "^2.9.7",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.1",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  }
+}

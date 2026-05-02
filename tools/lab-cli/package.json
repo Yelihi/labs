@@ -1,0 +1,15 @@
+{
+  "name": "@frontend-labs/lab-cli",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lab": "tsx src/index.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "commander": "^14.0.3"
+  }
+}
