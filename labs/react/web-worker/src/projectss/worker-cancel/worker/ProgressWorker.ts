@@ -1,4 +1,4 @@
-import type { IWorkerState, JobConfig, YieldFn, FromWorker } from "./types";
+import type { IWorkerState, JobConfig, YieldFn, FromWorker, WorkerEvents } from "./types";
 
 
 export class ProgressWorker {
@@ -37,14 +37,14 @@ export class ProgressWorker {
         requestId: number;
         query: string;
         yieldNext: YieldFn;
-        post: (msg: FromWorker, transfer?: Transferable[]) => void;
+        reply: <K extends keyof WorkerEvents>(queryMethodListener: K, ...args: [...Parameters<WorkerEvents[K]>, Transferable[]?]) => void;
         config: JobConfig;
     }) => {
-        const { requestId, query, yieldNext, post, config } = params
+        const { requestId, query, yieldNext, reply, config } = params
         const items = this.state.items;
 
         if (!items) {
-            post({ type: "ERROR", message: "items is not initialized" })
+            reply('error', requestId, 'items is not initialized')
             return;
         }
 
@@ -64,7 +64,7 @@ export class ProgressWorker {
             }
 
             if (this.isCanceled(requestId)) {
-                post({ type: "CANCELED", requestId });
+                reply('canceled', requestId)
                 return;
             }
 
@@ -94,7 +94,7 @@ export class ProgressWorker {
 
             // progress는 너무 자주 보내면 메인 렌더가 오히려 흔들릴 수 있음
             if (chunkCount % config.progressEveryChunks === 0) {
-                post({ type: "PROGRESS", requestId, done: processed, total: totalItems });
+                reply('progress', requestId, processed, totalItems)
             }
 
             // ✅ yield: 다음 tick으로 양보 → 메시지 처리(START/CANCEL) 기회 확보
@@ -102,9 +102,8 @@ export class ProgressWorker {
         }
 
         // 결과 전송 (indices는 TypedArray로 transfer)
-        console.log(cpu)
         const typed = new Uint32Array(indices);
-        post({ type: "RESULT", requestId, indices: typed }, [typed.buffer]);
+        reply('result', requestId, typed, [typed.buffer]);
 
 
     }

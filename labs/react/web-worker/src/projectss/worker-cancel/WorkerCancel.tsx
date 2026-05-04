@@ -1,16 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { QueryableWorker } from '../../utils/QueryableWorker'
 
 // type
-import type { FromWorker, ToWorker } from './worker/types'
+import type { WorkerListeners, WorkerEvents } from './worker/types'
 
-// worker
-function createWorker() {
-    const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' })
-    return worker
-}
 
 function WorkerCancel() {
-    const workerRef = useRef<Worker | null>(null)
+    const workerRef = useRef<QueryableWorker<WorkerListeners, WorkerEvents> | null>(null)
 
     const [query, setQuery] = useState("");
     const [size, setSize] = useState(0)
@@ -54,8 +50,7 @@ function WorkerCancel() {
         setStatus(`Start id=${id}`);
         console.log(`[main] t=${performance.now().toFixed(1)} START id=${id} q="${q}"`);
 
-        const msg: ToWorker = { type: "START", requestId: id, query: q };
-        workerRef.current.postMessage(msg);
+        workerRef.current.sendQuery('search', id, q);
     }
 
     function cancelLatest() {
@@ -64,74 +59,66 @@ function WorkerCancel() {
         const id = latestIdRef.current;
         console.log(`[main] t=${performance.now().toFixed(1)} CANCEL id=${id}`);
 
-        const msg: ToWorker = { type: "CANCEL", requestId: id };
-        workerRef.current.postMessage(msg);
+        workerRef.current.sendQuery('cancel', id);
     }
 
     useEffect(() => {
-        const worker = createWorker();
-        workerRef.current = worker;
+        workerRef.current = new QueryableWorker<WorkerListeners, WorkerEvents>('./worker/query-worker.ts')
 
         // message 등록
-        workerRef.current.onmessage = (e: MessageEvent<FromWorker>) => {
-            const msg = e.data;
+        const readyRm = workerRef.current.addListener('ready', (size: number) => {
             const t = performance.now().toFixed(1);
-
-            switch (msg.type) {
-                case 'READY': {
-                    setReady(true);
-                    setSize(msg.size);
-                    console.log(`[main] t=${t} READY size=${msg.size}`);
-                    return;
-                }
-                case 'PROGRESS': {
-                    if (msg.requestId !== latestIdRef.current) return;
-                    setStatus('progress');
-                    console.log(`[main] t=${t} PROGRESS id=${msg.requestId} ${msg.done}/${msg.total}`);
-                    return;
-                }
-                case 'RESULT': {
-                    if (msg.requestId !== latestIdRef.current) {
-                        console.log(`[main] t=${t} RESULT id=${msg.requestId} dropped`);
-                        return;
-                    }
-                    console.log(`[main] t=${t} RESULT id=${msg.requestId} applied count=${msg.indices.length}`);
-                    setIndices(msg.indices);
-                    setCount(msg.indices.length);
-                    setStatus(`Done id=${msg.requestId}`);
-                    return
-                }
-                case 'CANCELED': {
-                    if (msg.requestId !== latestIdRef.current) return;
-                    setStatus(`Canceled id=${msg.requestId}`);
-                    console.log(`[main] t=${t} CANCELED id=${msg.requestId}`);
-                    return;
-                }
-                case 'ERROR': {
-                    setStatus(`Error: ${msg.message}`);
-                    return;
-                }
+            setReady(true);
+            setSize(size);
+            console.log(`[main] t=${t} READY size=${size}`);
+        })
+        const progressRm = workerRef.current.addListener('progress', (requestId: number, done: number, total: number) => {
+            const t = performance.now().toFixed(1);
+            if (requestId !== latestIdRef.current) return;
+            setStatus('progress');
+            console.log(`[main] t=${t} PROGRESS id=${requestId} ${done}/${total}`);
+        })
+        const resultRm = workerRef.current.addListener('result', (requestId: number, indices: Uint32Array) => {
+            const t = performance.now().toFixed(1);
+            if (requestId !== latestIdRef.current) {
+                console.log(`[main] t=${t} RESULT id=${requestId} dropped`);
+                return;
             }
-        }
+            console.log(`[main] t=${t} RESULT id=${requestId} applied count=${indices.length}`);
+            setIndices(indices);
+            setCount(indices.length);
+            setStatus(`Done id=${requestId}`);
+            return
+        })
+        const canceledRm = workerRef.current.addListener('canceled', (requestId: number) => {
+            const t = performance.now().toFixed(1);
+            if (requestId !== latestIdRef.current) return;
+            setStatus(`Canceled id=${requestId}`);
+            console.log(`[main] t=${t} CANCELED id=${requestId}`);
+            return;
+        })
+        const errorRm = workerRef.current.addListener('error', (requestId: number, message: string) => {
+            const t = performance.now().toFixed(1);
+            setStatus(`Error: ${message}`);
+            return;
+        })
 
-        const initMessage: ToWorker = {
-            type: "INIT",
-            list: items
-        }
-
-        workerRef.current.postMessage(initMessage)
+        workerRef.current.sendQuery('initialized', items)
 
         return () => {
             workerRef.current?.terminate();
+            readyRm();
+            progressRm();
+            resultRm();
+            canceledRm();
+            errorRm();
             workerRef.current = null;
         }
     }, [])
 
     useEffect(() => {
         if (workerRef.current && items.length > 0) {
-            workerRef.current.postMessage({
-                type: 'INIT', list: items
-            })
+            workerRef.current.sendQuery('initialized', items)
         }
 
     }, [items])

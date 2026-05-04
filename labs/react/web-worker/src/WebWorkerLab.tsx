@@ -8,7 +8,7 @@ export default function WebWorkerLab() {
       <h1>Web Worker</h1>
       <p>Lab ID: react/web-worker</p>
       <section data-testid="lab-root">
-        <SearchWithNetworkAndWorker />
+        <WorkerCancel />
       </section>
     </main>
   );

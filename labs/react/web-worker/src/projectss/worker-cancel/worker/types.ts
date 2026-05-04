@@ -26,3 +26,18 @@ export interface JobConfig {
 }
 
 export type YieldFn = () => Promise<void>;
+
+
+export type WorkerListeners = {
+    initialized: (list: string[]) => void;
+    search: (requestId: number, query: string) => void;
+    cancel: (requestId: number) => void;
+}
+
+export type WorkerEvents = {
+    ready: (size: number) => void,
+    progress: (requestId: number, done: number, total: number) => void,
+    result: (requestId: number, indices: Uint32Array) => void,
+    canceled: (requestId: number) => void,
+    error: (requestId: number, message: string) => void
+}

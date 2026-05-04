@@ -257,3 +257,276 @@ AbortController 를 활용한 방식이지만, 결국은 기존 테스트에서 
 ```
 
 사실 큰 고민없이 작성한 코드라, 취소 함수 자체를 search 에서 분리시키는게 적합할 듯 한데, 개념적으로는 동일하니 이해하기만 하면 될 듯 싶다.
+
+### 3. queryable-worker pattern
+
+worker 를 사용하다보면 message 에 객체를 전달하게되고, 해당 객체는 transferable 하지 않도록 설정하면 구조적 복사가 되어 전달이 된다.
+
+보통 전달 방식은 { type, args } 형식으로 전달하게 되는데, 이렇게 하면 worker 내 self.onmessage 에서 if 혹은 switch 로 분기처리를 type 별로 진행하게 된다. 타입 지정을 할 수는 있지만, 분기 처리가 많아질 수록 if else 의 반복이 이어지기에 좋지 않은 패턴이라 생각된다.
+
+mdn 내에서는 하나의 패턴을 추천해주는데 그것이 queryable 방식이다. 보통 if 문을 삭제할 때 많이 사용하는 dictionary 형식과 비슷하다 할 수 있겠다. 
+
+기존 방식
+
+```typescript
+self.onmessage = (e: MessageEvent<ToWorker>) => {
+    const msg = e.data;
+
+    if (msg.type === "INIT") {
+        progressWorker.setItems(msg.list);
+        post({ type: "READY", size: msg.list.length });
+        return;
+    }
+
+    if (msg.type === "CANCEL") {
+        progressWorker.markCanceled(msg.requestId);
+        // 실제 중단 여부는 runFilterJob이 chunk 경계에서 판단하고 CANCELED를 보냄
+        return;
+    }
+
+    if (msg.type === "START") {
+        progressWorker.setLatest(msg.requestId);
+        // 이전 요청은 최신성이 깨져서 자동 stale 종료됨
+        progressWorker.runFilterJob({
+            requestId: msg.requestId,
+            query: msg.query,
+            yieldNext: yieldNextTick,
+            post,
+            config: JOB_CONFIG,
+        });
+        return;
+    }
+}
+```
+
+- 전달되는 type 값을 기반으로 분기처리를 한다
+- 초기 가장 깔끔한 가독성을 보여준다
+- 다만 점차 늘어날수록 세로로 코드 자체가 길어질 예정
+
+이제 queryable 형식으로 작성하기 위해서는 다음 요소들이 필요하다.
+
+- QueryableWorker 클래스(wrapper) 생성
+- main 에서 호출할 query 함수 구조체
+- worker 에서 전달할 event 함수 구조체
+
+```typescript
+// QueryableWorker wrapper
+type AnyFn = (...args: any[]) => any;
+type QueryMap = Record<string, AnyFn>;
+type EventMap = Record<string, AnyFn>;
+
+type QueryEvent<TEvents extends EventMap> =
+    {
+        queryMethodListener: keyof TEvents;
+        queryMethodArguments: unknown[];
+    }
+
+export class QueryableWorker<
+    TQueries extends QueryMap,
+    TEvents extends EventMap
+> {
+    private worker: Worker;
+    private listeners = new Map<keyof TEvents, Set<AnyFn>>();
+
+    constructor(url: URL | string) {
+        this.worker = new Worker(new URL(url, import.meta.url), { type: "module" });
+
+        this.worker.onmessage = (event) => {
+            const data = event.data;
+
+            if (this.isQueryEvent(data)) {
+                const eventName = data.queryMethodListener as keyof TEvents;
+                const handlers = this.listeners.get(eventName);
+
+                handlers?.forEach((handler) => {
+                    handler(...data.queryMethodArguments);
+                });
+            }
+        };
+    }
+
+    /**
+     * worker 내 등록된 query 를 실행시킨다.
+     * @param queryMethod 등록된 query key
+     * @param queryMethodArguments 필요 인자
+     */
+    sendQuery<K extends keyof TQueries>(
+        queryMethod: K,
+        ...queryMethodArguments: Parameters<TQueries[K]>
+    ) {
+        this.worker.postMessage({
+            queryMethod,
+            queryMethodArguments,
+        });
+    }
+
+    /**
+     * worker 로 부터 message 를 전달받을 때 전달된 event 에 따른 작업을 등록시킨다.
+     * @param name 등록된 event key
+     * @param listener 실행할 작업
+     */
+    addListener<K extends keyof TEvents>(
+        name: K,
+        listener: TEvents[K]
+    ) {
+        if (!this.listeners.has(name)) {
+            this.listeners.set(name, new Set());
+        }
+
+        this.listeners.get(name)!.add(listener);
+
+        return () => {
+            this.listeners.get(name)?.delete(listener);
+        };
+    }
+
+    terminate() {
+        this.worker.terminate();
+        this.listeners.clear();
+    }
+
+    isQueryEvent(data: unknown): data is QueryEvent<TEvents> {
+        return (
+            typeof data === "object" &&
+            data !== null &&
+            "queryMethodListener" in data &&
+            "queryMethodArguments" in data
+        );
+    }
+}
+
+```
+
+- worker 를 내부 상태로 가지고 있으며, 외부에서의 접근 interface 를 제공한다.
+- vite 환경에서 web worker 를 호출할 때는, 일반 문자열로 생성하는것이 아니라 new URL("path", import.meta.url) 로 생성하여, 상대 경로를 제대로 매핑해준다.
+- `sendQuery` 는 main thread 에서 사용하며, `queryMethod` 를 string 으로 전달하여 worker 내 등록된 함수를 호출한다. 이때 전달된 인자들은 구조적 복사가 된다.
+- `addListener` 는 main thread 에서 사용하며, worker 내부의 `EventMap` 중 event method 를 지정하여 event 가 발생했을 때 실행할 함수를 등록시킨다. 이 때 전달된 인자들은 구조적 복사가 된다.
+
+```typescript
+//worker
+
+// ...etc
+
+const queryableFunctions: WorkerListeners = {
+    initialized: (list: string[]) => {
+        progressWorker.setItems(list);
+        reply('ready', list.length)
+    },
+    search: (requestId: number, query: string) => {
+        progressWorker.setLatest(requestId);
+        progressWorker.runFilterJob({
+            requestId: requestId,
+            query: query,
+            yieldNext: yieldNextTick,
+            reply,
+            config: JOB_CONFIG,
+        })
+    },
+    cancel: (requestId: number) => {
+        progressWorker.markCanceled(requestId);
+        reply('canceled', requestId);
+    },
+};
+
+function reply<K extends keyof WorkerEvents>(
+    queryMethodListener: K,
+    ...args: [...Parameters<WorkerEvents[K]>, Transferable[]?]
+) {
+    let transfer: Transferable[] = [];
+
+    // 마지막 인자가 배열(Array)인 경우 Transferable[]로 취급하여 분리
+    if (args.length > 0 && Array.isArray(args[args.length - 1])) {
+        transfer = args.pop() as Transferable[];
+    }
+
+    self.postMessage({
+        queryMethodListener,
+        queryMethodArguments: args,
+    }, transfer);
+}
+
+self.onmessage = (event: MessageEvent<QueryMessage>) => {
+    const data = event.data;
+
+    if (isQueryMessage(data)) {
+        const fn = queryableFunctions[data.queryMethod];
+
+        if (!fn) {
+            reply('error', data.requestId, `Unknown query method: ${data.queryMethod}`);
+            return;
+        }
+
+        (fn as (...args: any[]) => void)(...data.queryMethodArguments);
+        return;
+    }
+}
+
+
+function isQueryMessage(data: any): data is QueryMessage {
+    return (
+        typeof data === "object" &&
+        data !== null &&
+        "queryMethod" in data &&
+        "queryMethodArguments" in data &&
+        Array.isArray((data as QueryMessage).queryMethodArguments)
+    );
+}
+```
+
+- if문이 제거되고 대신 전달되는 `queryMethod` 를 키로 하여 `queryableFunctions` 객체에서 함수를 찾아 실행시킨다
+- worker 에서 보내는 reply 의 경우 `WorkerEvents` 에 선언된 메서드를 키로 하여 `postMessage` 를 호출한다.
+
+```typescript
+// main
+
+    const workerRef = useRef(null)
+
+    function start(q: string) {
+        // 생략
+        workerRef.current.sendQuery('search', id, q);
+    }
+
+    function cancelLatest() {
+        // 생략
+        workerRef.current.sendQuery('cancel', id);
+    }
+
+    useEffect(() => {
+        // worker 대신 wrapper class 를 생성한다.
+        workerRef.current = new QueryableWorker<WorkerListeners, WorkerEvents>('./worker/query-worker.ts')
+
+        // message 등록 및 제거 함수 반환
+        // worker 로 부터 메시지 전달 받을 시 실행될 listener 등록
+        // type 추론이 자동으로 되어 인자까지 체크할 수 있다.
+        const readyRm = workerRef.current.addListener('ready', (size: number) => {
+            // 내부 로직 생략
+        })
+        const progressRm = workerRef.current.addListener('progress', (requestId: number, done: number, total: number) => {
+            // 생략
+        })
+        const resultRm = workerRef.current.addListener('result', (requestId: number, indices: Uint32Array) => {
+            // 생략
+        })
+        const canceledRm = workerRef.current.addListener('canceled', (requestId: number) => {
+            // 생략
+        })
+        const errorRm = workerRef.current.addListener('error', (requestId: number, message: string) => {
+            // 생략
+        })
+
+        workerRef.current.sendQuery('initialized', items)
+
+        // unmount 시 cleanup 함수 실행
+        // 보통은 useEffect 실행 전 한번 실행.
+        return () => {
+            workerRef.current?.terminate();
+            readyRm();
+            progressRm();
+            resultRm();
+            canceledRm();
+            errorRm();
+            workerRef.current = null;
+        }
+    }, [])
+
+```
