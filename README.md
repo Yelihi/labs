@@ -17,6 +17,14 @@ pnpm lab:test css/container-query     # run Playwright tests for the lab
 pnpm lab:export css/container-query   # export notes to Obsidian
 ```
 
+## playwright
+
+```bash
+pnpm exec playwright install
+pnpm exec playwright test
+pnpm exec playwright show-report
+```
+
 ## Other commands
 
 ```bash

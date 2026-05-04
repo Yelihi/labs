@@ -1,40 +1,30 @@
-# Frontend Labs — 사용 설명서
+# Frontend Labs — 사용 가이드
 
-## 목차
+## 이 시스템이 하는 일
 
-1. [초기 설정](#1-초기-설정)
-2. [새 Lab 만들기](#2-새-lab-만들기)
-3. [Lab 디렉토리 구조 이해하기](#3-lab-디렉토리-구조-이해하기)
-4. [개발 서버 실행](#4-개발-서버-실행)
-5. [Lab 컴포넌트 작성](#5-lab-컴포넌트-작성)
-6. [테스트 실행](#6-테스트-실행)
-7. [Notes 작성](#7-notes-작성)
-8. [Obsidian 내보내기](#8-obsidian-내보내기)
-9. [전체 워크플로우 예시](#9-전체-워크플로우-예시)
-10. [명령어 레퍼런스](#10-명령어-레퍼런스)
-11. [카테고리 기준](#11-카테고리-기준)
-12. [브라우저 테스트 레벨 기준](#12-브라우저-테스트-레벨-기준)
+프론트엔드 기술을 실험하고, 결과를 체계적으로 기록하고, Obsidian으로 지식화하는 시스템입니다.
+
+```
+실험 주제 정하기
+    → Lab 생성 (pnpm lab:create)
+    → 계획 작성 (plan.md)
+    → 코드 구현 (브라우저에서 확인)
+    → 브라우저 테스트 (Playwright)
+    → 결과 기록 (notes/)
+    → Obsidian 내보내기 (pnpm lab:export --write)
+```
 
 ---
 
-## 1. 초기 설정
-
-### 의존성 설치
+## 최초 1회 설정
 
 ```bash
 cd ~/Desktop/lab
 pnpm install
-```
-
-### Playwright 브라우저 설치 (E2E 테스트 전 1회)
-
-```bash
 pnpm exec playwright install --with-deps chromium firefox webkit
 ```
 
-### Obsidian vault 경로 확인
-
-`.env.local` 파일에 vault 경로가 설정되어 있는지 확인합니다.
+`.env.local` 에 Obsidian vault 경로가 설정되어 있는지 확인합니다.
 
 ```
 OBSIDIAN_VAULT_PATH=/Users/yelihe/Desktop/obsidian
@@ -42,437 +32,268 @@ OBSIDIAN_VAULT_PATH=/Users/yelihe/Desktop/obsidian
 
 ---
 
-## 2. 새 Lab 만들기
+## 전체 워크플로우
+
+### Step 1 — 실험 주제와 Framework 결정
+
+어떤 것을 실험할지, 어떤 환경이 필요한지 먼저 정합니다.
+
+| 내가 실험하려는 것 | Framework |
+|---|---|
+| CSS, React, 브라우저 API, 성능 | `react-vite` (기본값) |
+| Next.js SSR, App Router, Server Component | `next-app` |
+| 순수 DOM API, Web API (프레임워크 없이) | `javascript` |
+| TypeScript 타입, 제네릭, 순수 TS 로직 | `typescript` |
+
+---
+
+### Step 2 — Lab 생성
 
 ```bash
-pnpm lab:create <카테고리> <슬러그>
-```
-
-**예시:**
-
-```bash
+# 기본 (react-vite)
 pnpm lab:create css container-query
 pnpm lab:create react use-transition
-pnpm lab:create browser intersection-observer
 pnpm lab:create performance layout-thrashing
+
+# Framework 지정
+pnpm lab:create browser intersection-observer --framework javascript
+pnpm lab:create react server-component --framework next-app
+pnpm lab:create browser fetch-streams --framework typescript
 ```
 
-실행하면 두 가지 일이 자동으로 일어납니다:
+실행하면:
+- `labs/<카테고리>/<슬러그>/` 폴더 전체 생성
+- 해당 framework 앱의 라우트 자동 등록
 
-1. `labs/<카테고리>/<슬러그>/` 아래 전체 파일 구조 생성
-2. `apps/react-vite/src/labs.generated.ts` 자동 업데이트 (라우트 등록)
-
-> 별도로 `pnpm lab:routes`를 실행할 필요가 없습니다.
-
-### 사용 가능한 카테고리
-
-| 카테고리 | 대상 주제 |
-|---------|---------|
-| `css` | CSS 기능, 레이아웃, 애니메이션 |
-| `react` | React 훅, 렌더링, 상태 관리 |
-| `browser` | Web API, 브라우저 동작 |
-| `network` | Fetch, 캐싱, WebSocket |
-| `security` | XSS, CSP, CORS 등 |
-| `performance` | 성능 측정, 최적화 |
+> `pnpm lab:routes`는 별도로 실행할 필요 없습니다. create가 자동으로 처리합니다.
 
 ---
 
-## 3. Lab 디렉토리 구조 이해하기
+### Step 3 — 계획 먼저 작성
 
-`pnpm lab:create css container-query` 실행 후 생성되는 구조:
-
-```
-labs/css/container-query/
-  lab.config.ts          ← Lab 메타데이터 (id, title, 목표, 브라우저 설정)
-  README.md              ← Lab 개요 (실험 목적, 실행 방법)
-  plan.md                ← 실험 계획 (가설, 구현 방법, 예상 결과)
-
-  src/
-    ContainerQueryLab.tsx  ← 실험 React 컴포넌트 (여기서 코드 작성)
-    components/            ← 서브 컴포넌트 (필요 시 사용)
-    styles/                ← CSS 파일 (필요 시 사용)
-
-  tests/
-    container-query.spec.ts  ← Playwright 자동화 테스트
-
-  results/
-    screenshots/           ← Playwright 실패 시 스크린샷 저장
-    manual-check.md        ← 수동 브라우저 확인 결과 기록
-
-  notes/
-    source-note.md         ← 참고한 공식 문서, MDN, 스펙 링크
-    concept-note.md        ← 개념 정리 (원리, 배경지식)
-    lab-note.md            ← 실험 결과 정리 (Obsidian 내보내기 대상)
-    interview-note.md      ← 면접 대비 핵심 요약
-```
-
-### 각 파일의 역할
-
-**`lab.config.ts`** — 수정이 필요한 주요 필드:
-
-```ts
-goals: [
-  '실제 실험 질문으로 교체하세요.',
-  '예: Container Query가 Media Query를 완전히 대체할 수 있는가?',
-],
-```
-
-**`plan.md`** — 코드를 작성하기 전에 여기에 실험 계획을 먼저 적습니다.
-
-**`notes/lab-note.md`** — 실험이 끝난 후 결과를 정리하는 파일입니다. Obsidian으로 내보낼 때 이 파일이 메인 노트가 됩니다.
-
----
-
-## 4. 개발 서버 실행
-
-```bash
-pnpm dev:react
-```
-
-실행 후 브라우저에서:
-
-- `http://localhost:5173` — 전체 Lab 목록
-- `http://localhost:5173/labs/css/container-query` — 특정 Lab 직접 접근
-
-> URL 패턴: `http://localhost:5173/labs/<카테고리>/<슬러그>`
-
-**개발 중 워크플로우:**
-
-1. 터미널 1: `pnpm dev:react` (계속 실행)
-2. 에디터: `labs/css/container-query/src/ContainerQueryLab.tsx` 편집
-3. 브라우저에서 결과 확인 (Hot Reload 지원)
-
----
-
-## 5. Lab 컴포넌트 작성
-
-생성된 `src/ContainerQueryLab.tsx`를 수정해서 실험을 구현합니다.
-
-### 기본 구조 유지
-
-```tsx
-export default function ContainerQueryLab() {
-  return (
-    <main style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-      <h1>Container Query</h1>           {/* ← 변경 금지: Playwright 테스트가 이 제목을 찾음 */}
-      <p>Lab ID: css/container-query</p>
-
-      <section data-testid="lab-root">  {/* ← 변경 금지: Playwright가 이 testid를 사용 */}
-        {/* 여기서 실험 코드 작성 */}
-      </section>
-    </main>
-  );
-}
-```
-
-> `<h1>` 제목과 `data-testid="lab-root"` 는 Playwright 기본 테스트가 의존하므로 유지합니다.
-
-### shared 패키지 활용
-
-```tsx
-import { Button, Card } from '@frontend-labs/ui';
-import { getBrowserName } from '@frontend-labs/test-utils';
-import { defineLab } from '@frontend-labs/lab-core';
-```
-
----
-
-## 6. 테스트 실행
-
-### 특정 Lab 테스트
-
-```bash
-pnpm lab:test css/container-query
-```
-
-현재는 실행할 커맨드를 안내하는 placeholder입니다. 직접 실행:
-
-```bash
-# Chromium 단일
-pnpm exec playwright test labs/css/container-query --project=chromium
-
-# 핵심 3 브라우저 (Chromium, Firefox, WebKit)
-pnpm e2e:core -- labs/css/container-query
-
-# 전체 브라우저
-pnpm e2e:full -- labs/css/container-query
-```
-
-### 전체 Lab 테스트
-
-```bash
-pnpm e2e:core      # Chromium + Firefox + WebKit
-pnpm e2e:full      # Chrome, Edge 포함
-```
-
-### 테스트 결과 확인
-
-```bash
-pnpm e2e:report    # HTML 리포트 브라우저에서 열기
-```
-
-### 테스트 디버깅
-
-```bash
-pnpm e2e:headed    # 브라우저 화면을 보면서 실행
-pnpm e2e:debug     # 단계별 디버거 실행
-pnpm e2e:ui        # Playwright UI 모드 (가장 편리)
-```
-
-### 커스텀 Playwright 테스트 작성
-
-`labs/css/container-query/tests/container-query.spec.ts` 에 추가:
-
-```ts
-import { test, expect } from '@playwright/test';
-
-test.describe('css/container-query', () => {
-  test('renders lab page', async ({ page }) => {
-    await page.goto('/labs/css/container-query');
-    await expect(page.getByRole('heading', { name: 'Container Query' })).toBeVisible();
-    await expect(page.getByTestId('lab-root')).toBeVisible();
-  });
-
-  // 추가 테스트 작성
-  test('layout changes at container width 400px', async ({ page }) => {
-    await page.goto('/labs/css/container-query');
-    await page.setViewportSize({ width: 600, height: 800 });
-    // ...
-  });
-});
-```
-
----
-
-## 7. Notes 작성
-
-각 note 파일의 목적과 작성 방법입니다.
-
-### `notes/source-note.md` — 출처 노트
-
-참고한 문서, 스펙, 블로그 링크를 정리합니다.
+코드를 작성하기 전, `labs/<카테고리>/<슬러그>/plan.md`를 열어 작성합니다.
 
 ```markdown
-# SOURCE - Container Query
+## Experiment Question
+Container Query가 Media Query를 대체할 수 있는가?
 
+## Hypothesis
+container-type: inline-size를 설정하면 부모 요소 기준으로 스타일을 분기할 수 있다.
+
+## Implementation Plan
+1. 기본 컨테이너 설정 확인
+2. @container 규칙 적용 테스트
+3. 중첩 컨테이너 동작 확인
+```
+
+계획 없이 바로 코드를 작성하면 나중에 "무엇을 검증했는지"가 불분명해집니다.
+
+---
+
+### Step 4 — 개발 서버 실행 + 코드 구현
+
+framework에 맞는 개발 서버를 켭니다.
+
+```bash
+pnpm dev:react       # react-vite  → http://localhost:5173
+pnpm dev:next        # next-app    → http://localhost:5174
+pnpm dev:javascript  # javascript  → http://localhost:5175
+pnpm dev:typescript  # typescript  → http://localhost:5176
+```
+
+어느 URL로 접속해야 할지 모를 때:
+
+```bash
+pnpm lab:dev css/container-query
+# → Framework: react-vite
+# → Run: pnpm dev:react
+# → URL: http://localhost:5173/labs/css/container-query
+```
+
+구현 파일은 `labs/<카테고리>/<슬러그>/src/` 안에 있습니다. 수정하면 브라우저에 즉시 반영됩니다.
+
+**주의:** `<h1>` 제목과 `data-testid="lab-root"` 는 Playwright 테스트가 의존하므로 삭제하지 않습니다.
+
+---
+
+### Step 5 — 브라우저 테스트
+
+```bash
+# 특정 Lab, Chromium 하나
+pnpm exec playwright test labs/css/container-query --project=chromium
+
+# 핵심 3 브라우저 (Chromium + Firefox + WebKit)
+pnpm e2e:core -- labs/css/container-query
+
+# UI 모드 (시각적으로 확인하기 가장 편함)
+pnpm e2e:ui
+
+# 결과 리포트
+pnpm e2e:report
+```
+
+자동화 테스트 후 Safari / Edge는 직접 열어서 확인하고
+`labs/<카테고리>/<슬러그>/results/manual-check.md` 에 결과를 기록합니다.
+
+---
+
+### Step 6 — Notes 작성
+
+실험이 끝나면 `notes/` 폴더의 파일을 채웁니다. 순서는 자유롭지만 아래 흐름이 자연스럽습니다.
+
+**`source-note.md`** — 실험 중간중간 참고한 자료 링크와 스펙 요약
+
+```markdown
 ## 공식 문서
-- MDN: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries
-- W3C Spec: https://www.w3.org/TR/css-contain-3/
+- MDN Container Queries: https://...
+- W3C Spec: https://...
 
 ## 브라우저 지원
 - Can I Use: https://caniuse.com/css-container-queries
-
-## 참고 아티클
-- ...
+  Chrome 105+, Firefox 110+, Safari 16+
 ```
 
-### `notes/concept-note.md` — 개념 노트
-
-원리와 배경지식을 정리합니다.
+**`concept-note.md`** — 이해한 원리를 나만의 말로 정리
 
 ```markdown
-# CONCEPT - Container Query
-
-## 핵심 원리
-Container Query는 부모 요소의 크기를 기준으로 스타일을 적용한다.
-Media Query와 달리 뷰포트가 아닌 컨테이너 크기에 반응한다.
-
-## Media Query와 차이점
-...
+## 핵심 개념
+Media Query는 뷰포트 기준, Container Query는 부모 요소 기준.
+container-type을 설정한 요소가 "컨테이너"가 된다.
 ```
 
-### `notes/lab-note.md` — 실험 노트 ⭐
-
-실험 결과를 정리하는 메인 파일입니다. Obsidian으로 내보낼 때 이 파일이 사용됩니다.
+**`lab-note.md`** ⭐ — 실험 결과의 핵심. Obsidian 내보내기의 메인 파일
 
 ```markdown
-# LAB - Container Query
-
 ## Experiment Question
-Container Query를 사용하면 컴포넌트 단위의 반응형 디자인이 가능한가?
+Container Query가 Media Query를 대체할 수 있는가?
 
 ## Hypothesis
-가능하다. container-type: inline-size 설정 후 @container 규칙으로 스타일을 분기할 수 있다.
-
-## Environment
-- OS: macOS 25.4.0
-- Browser: Chrome 125, Firefox 126, Safari 17
-- Measurement: 수동 시각 확인
+가능하다.
 
 ## Test Result
-- Chromium ✅ 정상 동작
-- Firefox ✅ 정상 동작
-- WebKit ✅ 정상 동작
+- Chromium ✅
+- Firefox  ✅
+- WebKit   ✅
 
 ## Conclusion
-Container Query는 2023년부터 주요 브라우저 모두 지원. 실사용 가능.
+2023년부터 모든 주요 브라우저 지원. 실사용 가능.
 
 ## Practical Judgment
-Media Query 대신 컴포넌트 내부에서 사용하는 것이 재사용성 측면에서 유리하다.
+컴포넌트 단위 반응형이 필요할 때 Media Query보다 유리하다.
 ```
 
-### `notes/interview-note.md` — 면접 노트
-
-면접에서 바로 쓸 수 있는 핵심 요약입니다.
+**`interview-note.md`** — 면접에서 바로 꺼낼 수 있는 한 줄 요약
 
 ```markdown
-# INTERVIEW - Container Query
-
 ## 한 줄 정의
-부모 컨테이너의 크기를 기준으로 스타일을 변경하는 CSS 기능
+부모 컨테이너 크기 기준으로 스타일을 변경하는 CSS 기능
 
 ## Media Query와 차이
-- Media Query: 뷰포트 기준
-- Container Query: 부모 요소 기준 → 컴포넌트 재사용성 향상
-
-## 사용 방법
-```css
-.container { container-type: inline-size; }
-@container (min-width: 400px) { ... }
-```
-
-## 브라우저 지원
-모든 주요 브라우저 지원 (Chrome 105+, Firefox 110+, Safari 16+)
+뷰포트 기준 → 컨테이너 기준 (컴포넌트 재사용성 향상)
 ```
 
 ---
 
-## 8. Obsidian 내보내기
+### Step 7 — lab.config.ts 상태 변경
+
+실험 완료 시 `lab.config.ts`를 열어 `status`를 변경합니다.
+
+```ts
+status: 'done',   // 'idea' | 'active' | 'done' | 'archived'
+```
+
+---
+
+### Step 8 — Obsidian 내보내기
 
 ```bash
-# 미리보기 (파일 작성 안 함)
+# 미리보기 (어떤 파일이 내보내질지 확인)
 pnpm lab:export css/container-query
 
-# Obsidian vault에 실제 작성
+# 실제 내보내기
 pnpm lab:export css/container-query --write
 ```
 
-> 현재 `--write` 기능은 TODO 상태입니다. `.env.local`의 `OBSIDIAN_VAULT_PATH`에 vault 경로가 설정되어 있으면, 이후 구현 시 자동으로 내보내집니다.
+`08_Labs/css/container-query/` 폴더에 4개 파일이 생성됩니다.
+`lab-note.md`에는 Obsidian frontmatter(태그, 날짜, 상태 등)가 자동으로 추가됩니다.
+이후 Obsidian Git 플러그인이 자동으로 GitHub에 sync합니다.
 
 ---
 
-## 9. 전체 워크플로우 예시
-
-CSS `container-query` 실험을 처음부터 끝까지 진행하는 흐름입니다.
+## 명령어 치트시트
 
 ```bash
-# Step 1: Lab 생성 (routes 자동 등록)
-pnpm lab:create css container-query
+# Lab 관리
+pnpm lab:create <카테고리> <슬러그>                   # Lab 생성 (react-vite 기본)
+pnpm lab:create <카테고리> <슬러그> --framework <fw>  # Framework 지정
+pnpm lab:list                                          # 전체 Lab 목록
+pnpm lab:dev <카테고리/슬러그>                         # 개발 서버 안내
 
-# Step 2: plan.md에 실험 계획 작성 (에디터에서)
-# labs/css/container-query/plan.md 열어서 작성
+# 개발 서버
+pnpm dev:react        # react-vite  → :5173
+pnpm dev:next         # next-app    → :5174
+pnpm dev:javascript   # javascript  → :5175
+pnpm dev:typescript   # typescript  → :5176
 
-# Step 3: 개발 서버 실행
-pnpm dev:react
-# → http://localhost:5173/labs/css/container-query 확인
+# 테스트
+pnpm e2e:core         # Chromium + Firefox + WebKit
+pnpm e2e:ui           # UI 모드 (권장)
+pnpm e2e:report       # 결과 리포트
 
-# Step 4: ContainerQueryLab.tsx 구현
-# labs/css/container-query/src/ContainerQueryLab.tsx 편집
+# 정적 검사
+pnpm typecheck        # 전체 TypeScript 검사
+pnpm lint             # ESLint
+pnpm format           # Prettier 자동 포맷
 
-# Step 5: Playwright 테스트 실행 (기본 렌더링 확인)
-pnpm exec playwright test labs/css/container-query --project=chromium
-
-# Step 6: 3 브라우저 테스트
-pnpm e2e:core -- labs/css/container-query
-
-# Step 7: 수동 확인
-# labs/css/container-query/results/manual-check.md 에 Safari/Edge 결과 기록
-
-# Step 8: Notes 작성
-# labs/css/container-query/notes/lab-note.md 에 실험 결과 정리
-
-# Step 9: lab.config.ts 상태 업데이트
-# status: 'active' → 'done'
-
-# Step 10: Obsidian 내보내기 (추후 구현)
-pnpm lab:export css/container-query --write
+# Obsidian
+pnpm lab:export <id>           # 미리보기
+pnpm lab:export <id> --write   # 실제 내보내기
 ```
 
 ---
 
-## 10. 명령어 레퍼런스
+## 카테고리 선택 기준
 
-### Lab 관리
-
-| 명령어 | 설명 |
-|--------|------|
-| `pnpm lab:create <카테고리> <슬러그>` | 새 Lab 생성 + routes 자동 동기화 |
-| `pnpm lab:list` | 현재 모든 Lab 목록 출력 |
-| `pnpm lab:routes` | `labs.generated.ts` 수동 재생성 (보통 불필요) |
-| `pnpm lab:dev <id>` | 특정 Lab의 URL 안내 출력 |
-
-### 개발
-
-| 명령어 | 설명 |
-|--------|------|
-| `pnpm dev:react` | Vite 개발 서버 시작 (port 5173) |
-| `pnpm build` | 전체 빌드 |
-| `pnpm typecheck` | TypeScript 타입 체크 |
-| `pnpm lint` | ESLint 실행 |
-| `pnpm format` | Prettier 자동 포맷 |
-| `pnpm format:check` | Prettier 검사만 (수정 안 함) |
-
-### 테스트
-
-| 명령어 | 설명 |
-|--------|------|
-| `pnpm e2e:core` | Chromium + Firefox + WebKit |
-| `pnpm e2e:full` | 전체 브라우저 (Chrome, Edge 포함) |
-| `pnpm e2e:ui` | Playwright UI 모드 (시각적 디버깅) |
-| `pnpm e2e:headed` | 브라우저 화면 보면서 실행 |
-| `pnpm e2e:debug` | 단계별 디버거 |
-| `pnpm e2e:report` | HTML 리포트 열기 |
-
-### Notes & Export
-
-| 명령어 | 설명 |
-|--------|------|
-| `pnpm lab:test <id>` | 특정 Lab 테스트 안내 |
-| `pnpm lab:report <id>` | 리포트 생성 (TODO) |
-| `pnpm lab:export <id>` | 내보내기 미리보기 |
-| `pnpm lab:export <id> --write` | Obsidian vault에 실제 저장 |
+| 카테고리 | 주제 예시 |
+|---|---|
+| `css` | Container Query, Grid, Custom Properties, 애니메이션 |
+| `react` | useTransition, Suspense, Server Component, 렌더링 최적화 |
+| `browser` | IntersectionObserver, ResizeObserver, Web Worker, IndexedDB |
+| `network` | Fetch 캐싱, WebSocket, Service Worker, HTTP/2 Push |
+| `security` | XSS, CSP, CORS, Cookie 보안 속성 |
+| `performance` | Layout Thrashing, CLS, LCP 측정, 메모리 |
 
 ---
 
-## 11. 카테고리 기준
+## AI (Claude Code) 활용
 
-| 카테고리 | 언제 사용 |
-|---------|---------|
-| `css` | CSS Grid, Flexbox, Container Query, Custom Properties, 애니메이션 등 |
-| `react` | React 훅 동작 원리, 렌더링 최적화, Concurrent Features 등 |
-| `browser` | Web API (IntersectionObserver, ResizeObserver, WebWorker 등) |
-| `network` | Fetch API, HTTP 캐싱, WebSocket, Service Worker 등 |
-| `security` | XSS, CSP, CORS, HTTPS, Cookie 보안 속성 등 |
-| `performance` | 렌더링 성능, 메모리 측정, Core Web Vitals 등 |
+Claude Code와 함께 작업할 때 맡기기 좋은 것:
 
----
-
-## 12. 브라우저 테스트 레벨 기준
-
-자세한 내용은 [`docs/browser-test-policy.md`](./browser-test-policy.md)를 참고하세요.
-
-| 레벨 | 기준 | 브라우저 |
-|------|------|---------|
-| Level 1 | 학습 확인용 | Chromium만 |
-| Level 2 | 실무 적용 후보 | Chromium + Firefox + WebKit (Playwright 필수) |
-| Level 3 | 프로덕션 후보 | Level 2 + Chrome stable + Edge + Safari 수동 확인 |
-
----
-
-## AI Agent 활용
-
-이 repo는 Claude Code와 함께 사용하도록 설계되어 있습니다.
-
-AI에게 맡길 수 있는 것:
-- Lab scaffold 생성 후 컴포넌트 초안 작성
+- Lab scaffold 생성 후 컴포넌트 초안 작성 요청
 - `plan.md` / `README.md` 초안 작성
 - Playwright 테스트 케이스 추가
-- 실험 결과 요약 및 `lab-note.md` 작성 보조
+- 실험 코드 리팩토링
+- `lab-note.md` 결과 정리 보조
 
-**AI에게 맡기면 안 되는 것:**
-- 브라우저 호환성 결과를 추측으로 단정하기
-- 성능 수치를 측정 없이 기재하기
-- `manual-check.md`를 기존 내용 없이 덮어쓰기
-- Lab 상태를 `done`으로 변경 (사람이 직접 확인 후 변경)
+**직접 판단해야 하는 것 (AI에게 맡기면 안 됨):**
 
-자세한 내용은 [`docs/ai-agent-guide.md`](./ai-agent-guide.md)를 참고하세요.
+- 브라우저 호환성 결과 (반드시 실제 테스트 후 기록)
+- 성능 수치 (반드시 실제 측정 후 기록)
+- `status: 'done'` 변경 (직접 확인 후 변경)
+- `manual-check.md` 의 수동 확인 결과
+
+---
+
+## 흔한 실수
+
+**`pnpm lab:routes` 를 따로 실행할 필요 없습니다.**
+`pnpm lab:create` 가 자동으로 처리합니다.
+
+**개발 서버를 잘못 켰을 때.**
+`pnpm lab:dev <id>` 로 어느 서버를 켜야 하는지 확인하세요.
+
+**Obsidian에서 파일이 안 보일 때.**
+Obsidian 앱에서 `Cmd + R` (vault reload) 또는 앱을 재시작하면 새 파일이 인식됩니다.
+
+**`--write` 없이 export 했을 때.**
+`--write` 플래그가 없으면 dry run (미리보기만) 입니다. 파일이 실제로 쓰이지 않습니다.
