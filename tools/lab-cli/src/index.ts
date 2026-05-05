@@ -20,7 +20,6 @@ program
   .option(
     '--framework <framework>',
     'Lab framework: react-vite | next-app | javascript | typescript | vue-vite',
-    'react-vite',
   )
   .action(createCommand);
 

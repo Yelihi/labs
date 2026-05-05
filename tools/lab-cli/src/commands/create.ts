@@ -1,12 +1,13 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import type { LabFramework } from '@frontend-labs/lab-core';
-import { labsDir } from '../utils/paths';
+import { labsDir, appDirs } from '../utils/paths';
 import { toTitle, toComponentName } from '../utils/slug';
 import { routesCommand } from './routes';
 
 function componentExt(framework: LabFramework): string {
   if (framework === 'javascript') return '.js';
+  if (framework === 'typescript') return '.ts';
   if (framework === 'vue-vite') return '.vue';
   return '.tsx';
 }
@@ -66,7 +67,7 @@ export async function createCommand(
   slug: string,
   options: { framework?: string },
 ): Promise<void> {
-  const framework = (options.framework ?? 'react-vite') as LabFramework;
+  const framework = (options.framework ?? (category in appDirs ? category : 'react-vite')) as LabFramework;
   const labId = `${category}/${slug}`;
   const labDir = path.join(labsDir, category, slug);
   const title = toTitle(slug);

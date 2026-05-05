@@ -9,7 +9,8 @@ export type LabCategory =
   | 'network'
   | 'security'
   | 'performance'
-  | 'ai';
+  | 'ai'
+  | 'typescript'
 
 export type LabFramework = 'react-vite' | 'next-app' | 'vue-vite' | 'javascript' | 'typescript';
 

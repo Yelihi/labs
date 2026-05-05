@@ -5,4 +5,13 @@ export type LabRoute = {
   setup: (root: HTMLElement) => void;
 };
 
-export const labs: readonly LabRoute[] = [];
+import NotebookLab from '../../../labs/typescript/notebook/src/NotebookLab';
+
+export const labs: readonly LabRoute[] = [
+  {
+    id: 'typescript/notebook',
+    title: 'Notebook',
+    route: '/labs/typescript/notebook',
+    setup: NotebookLab,
+  },
+];

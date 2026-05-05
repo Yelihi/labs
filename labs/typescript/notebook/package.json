@@ -1,0 +1,12 @@
+{
+  "name": "@frontend-labs/lab-typescript-notebook",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/NotebookLab.ts",
+  "dependencies": {
+    "assert": "^2.1.0",
+    "fp-ts": "^2.16.5",
+    "immer": "^11.1.6"
+  }
+}

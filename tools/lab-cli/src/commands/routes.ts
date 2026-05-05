@@ -12,17 +12,38 @@ type LabEntry = {
   slug: string;
 };
 
+type ResolvedEntry = LabEntry & { compName: string };
+
 const REACT_FRAMEWORKS: LabFramework[] = ['react-vite', 'next-app'];
 const VANILLA_FRAMEWORKS: LabFramework[] = ['javascript', 'typescript'];
 const KNOWN_FRAMEWORKS: LabFramework[] = [...REACT_FRAMEWORKS, ...VANILLA_FRAMEWORKS];
 
 function componentExt(framework: LabFramework): string {
   if (framework === 'javascript') return '.js';
+  if (framework === 'typescript') return '.ts';
   if (framework === 'vue-vite') return '.vue';
   return '.tsx';
 }
 
-function generateReactLabsTs(entries: LabEntry[], appDir: string): string {
+async function resolveComponentName(
+  category: string,
+  slug: string,
+  framework: LabFramework,
+): Promise<string> {
+  const ext = componentExt(framework);
+  const srcDir = path.join(repoRoot, 'labs', category, slug, 'src');
+  const conventional = toComponentName(slug);
+
+  if (await fs.pathExists(path.join(srcDir, `${conventional}${ext}`))) {
+    return conventional;
+  }
+
+  const files = await fg(`*${ext}`, { cwd: srcDir, deep: 1 });
+  const main = files.map((f) => path.parse(f).name).find((n) => /^[A-Z]/.test(n));
+  return main ?? conventional;
+}
+
+function generateReactLabsTs(entries: ResolvedEntry[], appDir: string): string {
   const lines: string[] = [
     `import type { ComponentType } from 'react';`,
     ``,
@@ -36,8 +57,7 @@ function generateReactLabsTs(entries: LabEntry[], appDir: string): string {
   ];
 
   if (entries.length > 0) {
-    for (const { config, category, slug } of entries) {
-      const compName = toComponentName(slug);
+    for (const { category, slug, compName } of entries) {
       const importPath = path.relative(
         path.join(appDir, 'src'),
         path.join(repoRoot, 'labs', category, slug, 'src', compName),
@@ -47,8 +67,7 @@ function generateReactLabsTs(entries: LabEntry[], appDir: string): string {
     lines.push(``);
   }
 
-  const items = entries.map(({ config, slug }) => {
-    const compName = toComponentName(slug);
+  const items = entries.map(({ config, compName }) => {
     return `  {\n    id: '${config.id}',\n    title: '${config.title}',\n    route: '${config.route}',\n    component: ${compName},\n  }`;
   });
 
@@ -59,7 +78,7 @@ function generateReactLabsTs(entries: LabEntry[], appDir: string): string {
   return lines.join('\n');
 }
 
-function generateVanillaLabsTs(entries: LabEntry[], appDir: string): string {
+function generateVanillaLabsTs(entries: ResolvedEntry[], appDir: string): string {
   const lines: string[] = [
     `export type LabRoute = {`,
     `  id: string;`,
@@ -71,8 +90,7 @@ function generateVanillaLabsTs(entries: LabEntry[], appDir: string): string {
   ];
 
   if (entries.length > 0) {
-    for (const { config, category, slug } of entries) {
-      const compName = toComponentName(slug);
+    for (const { category, slug, compName } of entries) {
       const importPath = path.relative(
         path.join(appDir, 'src'),
         path.join(repoRoot, 'labs', category, slug, 'src', compName),
@@ -82,8 +100,7 @@ function generateVanillaLabsTs(entries: LabEntry[], appDir: string): string {
     lines.push(``);
   }
 
-  const items = entries.map(({ config, slug }) => {
-    const compName = toComponentName(slug);
+  const items = entries.map(({ config, compName }) => {
     return `  {\n    id: '${config.id}',\n    title: '${config.title}',\n    route: '${config.route}',\n    setup: ${compName},\n  }`;
   });
 
@@ -108,8 +125,15 @@ export async function routesCommand(): Promise<void> {
     }),
   );
 
-  const byFramework = new Map<LabFramework, LabEntry[]>();
-  for (const entry of allEntries) {
+  const resolvedEntries = await Promise.all(
+    allEntries.map(async (entry) => ({
+      ...entry,
+      compName: await resolveComponentName(entry.category, entry.slug, entry.config.framework),
+    })),
+  );
+
+  const byFramework = new Map<LabFramework, ResolvedEntry[]>();
+  for (const entry of resolvedEntries) {
     const fw = entry.config.framework;
     if (!byFramework.has(fw)) byFramework.set(fw, []);
     byFramework.get(fw)!.push(entry);
