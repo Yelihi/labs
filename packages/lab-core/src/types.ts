@@ -11,8 +11,9 @@ export type LabCategory =
   | 'performance'
   | 'ai'
   | 'typescript'
+  | 'python'
 
-export type LabFramework = 'react-vite' | 'next-app' | 'vue-vite' | 'javascript' | 'typescript';
+export type LabFramework = 'react-vite' | 'next-app' | 'vue-vite' | 'javascript' | 'typescript' | 'python';
 
 export type BrowserTarget = 'chromium' | 'firefox' | 'webkit' | 'chrome' | 'edge' | 'safari';
 

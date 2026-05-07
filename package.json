@@ -13,6 +13,7 @@
     "dev:next": "turbo run dev --filter=@frontend-labs/next-app",
     "dev:javascript": "turbo run dev --filter=@frontend-labs/javascript",
     "dev:typescript": "turbo run dev --filter=@frontend-labs/typescript",
+    "dev:python": "pnpm --filter @frontend-labs/python-server dev",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",

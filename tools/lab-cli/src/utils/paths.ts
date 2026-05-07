@@ -14,4 +14,5 @@ export const appDirs: Record<string, string> = {
   'javascript': path.join(repoRoot, 'apps/javascript'),
   'typescript': path.join(repoRoot, 'apps/typescript'),
   'vue-vite': path.join(repoRoot, 'apps/vue-vite'),
+  'python': path.join(repoRoot, 'apps/python-server'),
 };

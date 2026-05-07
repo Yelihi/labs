@@ -1,0 +1,8 @@
+{
+  "name": "@frontend-labs/python-server",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn main:app --app-dir src --reload --port 8000",
+    "install:py": "pip install -r requirements.txt"
+  }
+}

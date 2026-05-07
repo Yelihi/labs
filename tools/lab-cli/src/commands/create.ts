@@ -9,6 +9,7 @@ function componentExt(framework: LabFramework): string {
   if (framework === 'javascript') return '.js';
   if (framework === 'typescript') return '.ts';
   if (framework === 'vue-vite') return '.vue';
+  if (framework === 'python') return '.py';
   return '.tsx';
 }
 
@@ -45,6 +46,20 @@ function componentBody(
     </main>
   \`;
 }
+`;
+  }
+
+  if (framework === 'python') {
+    return `def setup() -> str:
+    return """
+    <main style="padding:24px;font-family:system-ui,sans-serif">
+      <h1>${title}</h1>
+      <p>Lab ID: ${labId}</p>
+      <section data-testid="lab-root">
+        <p>Implement the experiment here.</p>
+      </section>
+    </main>
+    """
 `;
   }
 
