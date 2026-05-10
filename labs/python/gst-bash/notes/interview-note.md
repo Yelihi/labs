@@ -1,0 +1,3 @@
+# INTERVIEW - Gst Bash
+
+TODO

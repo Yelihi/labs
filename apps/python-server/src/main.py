@@ -28,9 +28,13 @@ def lab_index():
 def _make_handler(lab):
     def handler():
         content = lab["setup"]()
+        if "<html" in content[:200].lower():
+            return HTMLResponse(content)
         return HTMLResponse(f"<html><body>{content}</body></html>")
     return handler
 
 
 for _lab in labs:
     app.add_api_route(_lab["route"], _make_handler(_lab), methods=["GET"])
+    if _lab.get("router"):
+        app.include_router(_lab["router"], prefix=_lab["route"])

@@ -1,2 +1,8 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+opencv-python>=4.9,<5
+numpy>=1.26,<2
+# macOS: GStreamer 공식 SDK 설치 필요 (gi는 SDK에 포함)
+# Linux/Docker: apt install python3-gi 또는 아래 pip 패키지 사용
+PyGObject>=3.44.0; sys_platform == "linux"

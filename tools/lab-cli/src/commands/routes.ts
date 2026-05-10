@@ -122,9 +122,13 @@ function generatePythonLabsPy(entries: ResolvedEntry[], appDir: string): string 
     '',
     'def _load(rel: str, name: str):',
     '    abs_path = os.path.join(os.path.dirname(__file__), rel)',
+    '    mod_dir = os.path.dirname(abs_path)',
+    '    import sys',
+    '    sys.path.insert(0, mod_dir)',
     '    spec = importlib.util.spec_from_file_location(name, abs_path)',
     '    mod = importlib.util.module_from_spec(spec)',
     '    spec.loader.exec_module(mod)',
+    '    sys.path.pop(0)',
     '    return mod',
     '',
     '',
@@ -142,7 +146,7 @@ function generatePythonLabsPy(entries: ResolvedEntry[], appDir: string): string 
 
   const items = entries.map(
     ({ config, compName }) =>
-      `    {\n        "id": "${config.id}",\n        "title": "${config.title}",\n        "route": "${config.route}",\n        "setup": _${compName}.setup,\n    }`,
+      `    {\n        "id": "${config.id}",\n        "title": "${config.title}",\n        "route": "${config.route}",\n        "setup": _${compName}.setup,\n        "router": getattr(_${compName}, 'router', None),\n    }`,
   );
 
   const labsValue = items.length > 0 ? `[\n${items.join(',\n')},\n]` : '[]';

@@ -1,0 +1,3 @@
+# CONCEPT - Gst Bash
+
+TODO

@@ -11,4 +11,30 @@ def _load(rel: str, name: str):
     return mod
 
 
-labs = []
+_GstBashLab = _load('../../../labs/python/gst-bash/src/main.py', 'GstBashLab')
+_GstPipelineAdjustStablizerLab = _load('../../../labs/python/gst-pipeline-adjust-stablizer/src/GstPipelineAdjustStablizerLab.py', 'GstPipelineAdjustStablizerLab')
+_GstSoftStablizerLab = _load('../../../labs/python/gst-soft-stablizer/src/GstSoftStablizerLab.py', 'GstSoftStablizerLab')
+
+labs = [
+    {
+        "id": "python/gst-bash",
+        "title": "Gst Bash",
+        "route": "/labs/python/gst-bash",
+        "setup": _GstBashLab.setup,
+        "router": getattr(_GstBashLab, 'router', None),
+    },
+    {
+        "id": "python/gst-pipeline-adjust-stablizer",
+        "title": "Gst Pipeline Adjust Stablizer",
+        "route": "/labs/python/gst-pipeline-adjust-stablizer",
+        "setup": _GstPipelineAdjustStablizerLab.setup,
+        "router": getattr(_GstPipelineAdjustStablizerLab, 'router', None),
+    },
+    {
+        "id": "python/gst-soft-stablizer",
+        "title": "Gst Soft Stablizer",
+        "route": "/labs/python/gst-soft-stablizer",
+        "setup": _GstSoftStablizerLab.setup,
+        "router": getattr(_GstSoftStablizerLab, 'router', None),
+    },
+]
