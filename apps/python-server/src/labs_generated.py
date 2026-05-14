@@ -5,15 +5,19 @@ import importlib.util
 
 def _load(rel: str, name: str):
     abs_path = os.path.join(os.path.dirname(__file__), rel)
+    mod_dir = os.path.dirname(abs_path)
+    import sys
+    sys.path.insert(0, mod_dir)
     spec = importlib.util.spec_from_file_location(name, abs_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    sys.path.pop(0)
     return mod
 
 
-_GstBashLab = _load('../../../labs/python/gst-bash/src/main.py', 'GstBashLab')
-_GstPipelineAdjustStablizerLab = _load('../../../labs/python/gst-pipeline-adjust-stablizer/src/GstPipelineAdjustStablizerLab.py', 'GstPipelineAdjustStablizerLab')
+_GstBashLab = _load('../../../labs/python/gst-bash/src/GstBashLab.py', 'GstBashLab')
 _GstSoftStablizerLab = _load('../../../labs/python/gst-soft-stablizer/src/GstSoftStablizerLab.py', 'GstSoftStablizerLab')
+_GstPipelineAdjustStablizerLab = _load('../../../labs/python/gst-pipeline-adjust-stablizer/src/GstPipelineAdjustStablizerLab.py', 'GstPipelineAdjustStablizerLab')
 
 labs = [
     {
@@ -24,17 +28,17 @@ labs = [
         "router": getattr(_GstBashLab, 'router', None),
     },
     {
-        "id": "python/gst-pipeline-adjust-stablizer",
-        "title": "Gst Pipeline Adjust Stablizer",
-        "route": "/labs/python/gst-pipeline-adjust-stablizer",
-        "setup": _GstPipelineAdjustStablizerLab.setup,
-        "router": getattr(_GstPipelineAdjustStablizerLab, 'router', None),
-    },
-    {
         "id": "python/gst-soft-stablizer",
         "title": "Gst Soft Stablizer",
         "route": "/labs/python/gst-soft-stablizer",
         "setup": _GstSoftStablizerLab.setup,
         "router": getattr(_GstSoftStablizerLab, 'router', None),
+    },
+    {
+        "id": "python/gst-pipeline-adjust-stablizer",
+        "title": "Gst Pipeline Adjust Stablizer",
+        "route": "/labs/python/gst-pipeline-adjust-stablizer",
+        "setup": _GstPipelineAdjustStablizerLab.setup,
+        "router": getattr(_GstPipelineAdjustStablizerLab, 'router', None),
     },
 ]

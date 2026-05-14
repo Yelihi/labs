@@ -1,0 +1,22 @@
+workflow "Place Order"=
+  input: UnvalidatedOrder
+  output: (on success)
+    OrderAcknowledgmentSent
+    AND OrderPlaced (to send to shipping)
+    AND BillableOrderPlaced (to send to billing)
+  output: (on error)
+    ValidationError
+
+  // step 1
+  do ValidateOrder
+  If order is invalid then:
+    return with ValidationError
+  
+  // step 2
+  do PriceOrder
+
+  // step 3
+  do AcknowledgeOrder
+
+  // step 4
+  create and return the events

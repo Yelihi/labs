@@ -1,4 +1,4 @@
-import { Either } from "fp-ts/lib/Either";
+import { Either, match, left, right } from "fp-ts/lib/Either";
 import { Task } from "fp-ts/lib/Task";
 
 
@@ -139,3 +139,26 @@ type CalculatePrices2 = (i: CalculatePricesInput) => PriceOrder;
 // task 를 통해 비동기 함수의 효과를 표시
 type ValidateOrder = (i: UnvalidatedOrder) => Task<Either<Error, ValidateOrder>>
 
+
+
+declare const unitQuantity1: unique symbol;
+class UnitQuantity1 {
+    [unitQuantity1]!: never;
+    private constructor(readonly value: number) { }
+
+    /**
+     * 조건은 1 보다 크고 1000 보다 작아야 한다.
+     */
+    static create(i: number): Either<Error, UnitQuantity1> {
+        if (i < 1) {
+            return left(new Error('number is less than min'))
+        }
+        if (i > 1000) {
+            return left(new Error('number is greater than max'))
+        }
+        return right(new UnitQuantity1(i));
+    }
+}
+
+const a = UnitQuantity1.create(20);
+match(a).with()
