@@ -1,0 +1,4 @@
+interface:
+  display_name: "Domain-Driven Architecture"
+  short_description: "DDD architecture guidance from project notes"
+  default_prompt: "Use $domain-driven-architecture to guide and apply domain-driven architecture from my notes."
