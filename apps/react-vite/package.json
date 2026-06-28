@@ -13,8 +13,11 @@
   "dependencies": {
     "@frontend-labs/lab-core": "workspace:*",
     "@frontend-labs/ui": "workspace:*",
+    "@react-three/drei": "^10.0.0",
+    "@react-three/fiber": "^9.0.0",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "three": "^0.174.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

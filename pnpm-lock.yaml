@@ -119,12 +119,21 @@ importers:
       '@frontend-labs/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@react-three/drei':
+        specifier: ^10.0.0
+        version: 10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.14)(immer@11.1.6)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.174.0))(@types/react@19.2.14)(@types/three@0.174.0)(immer@11.1.6)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.174.0)
+      '@react-three/fiber':
+        specifier: ^9.0.0
+        version: 9.6.1(@types/react@19.2.14)(immer@11.1.6)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.174.0)
       react:
         specifier: ^19.2.5
         version: 19.2.5
       react-dom:
         specifier: ^19.2.5
         version: 19.2.5(react@19.2.5)
+      three:
+        specifier: ^0.174.0
+        version: 0.174.0
     devDependencies:
       '@types/react':
         specifier: ^19.2.14

@@ -10,6 +10,7 @@ export type LabRoute = {
 import ContainerQueryLab from '../../../labs/css/container-query/src/ContainerQueryLab';
 import GridLayoutLab from '../../../labs/css/grid-layout/src/GridLayoutLab';
 import ThreeDAvatarLab from '../../../labs/react/3d-avatar/src/ThreeDAvatarLab';
+import ReactComponentsLab from '../../../labs/react/react-components/src/ReactComponentsLab';
 import WebWorkerLab from '../../../labs/react/web-worker/src/WebWorkerLab';
 
 export const labs: readonly LabRoute[] = [
@@ -30,6 +31,12 @@ export const labs: readonly LabRoute[] = [
     title: '3d Avatar',
     route: '/labs/react/3d-avatar',
     component: ThreeDAvatarLab,
+  },
+  {
+    id: 'react/react-components',
+    title: 'React Components',
+    route: '/labs/react/react-components',
+    component: ReactComponentsLab,
   },
   {
     id: 'react/web-worker',
