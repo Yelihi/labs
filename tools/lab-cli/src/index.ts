@@ -19,7 +19,7 @@ program
   .argument('<slug>', 'Lab slug, e.g. container-query')
   .option(
     '--framework <framework>',
-    'Lab framework: react-vite | next-app | javascript | typescript | vue-vite',
+    'Lab framework: react-vite | next-app | javascript | typescript | vue-vite | python | c | cpp',
   )
   .action(createCommand);
 

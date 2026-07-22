@@ -20,6 +20,8 @@ const PYTHON_FRAMEWORKS: LabFramework[] = ['python'];
 const KNOWN_FRAMEWORKS: LabFramework[] = [...REACT_FRAMEWORKS, ...VANILLA_FRAMEWORKS, ...PYTHON_FRAMEWORKS];
 
 function componentExt(framework: LabFramework): string {
+  if (framework === 'c') return '.c';
+  if (framework === 'cpp') return '.cpp';
   if (framework === 'javascript') return '.js';
   if (framework === 'typescript') return '.ts';
   if (framework === 'vue-vite') return '.vue';

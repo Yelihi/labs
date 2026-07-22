@@ -44,6 +44,8 @@ OBSIDIAN_VAULT_PATH=/Users/yelihe/Desktop/obsidian
 | Next.js SSR, App Router, Server Component | `next-app` |
 | 순수 DOM API, Web API (프레임워크 없이) | `javascript` |
 | TypeScript 타입, 제네릭, 순수 TS 로직 | `typescript` |
+| C 언어 콘솔 실습 | `c` |
+| C++ 콘솔 실습 | `cpp` |
 
 ---
 
@@ -59,6 +61,8 @@ pnpm lab:create performance layout-thrashing
 pnpm lab:create browser intersection-observer --framework javascript
 pnpm lab:create react server-component --framework next-app
 pnpm lab:create browser fetch-streams --framework typescript
+pnpm lab:create c pointer-basics
+pnpm lab:create cpp vector-basics
 ```
 
 실행하면:
@@ -99,6 +103,13 @@ pnpm dev:react       # react-vite  → http://localhost:5173
 pnpm dev:next        # next-app    → http://localhost:5174
 pnpm dev:javascript  # javascript  → http://localhost:5175
 pnpm dev:typescript  # typescript  → http://localhost:5176
+```
+
+C/C++ 실습은 브라우저 개발 서버 대신 `make`로 실행합니다.
+
+```bash
+make -C labs/c/pointer-basics run
+make -C labs/cpp/vector-basics run
 ```
 
 어느 URL로 접속해야 할지 모를 때:

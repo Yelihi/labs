@@ -6,6 +6,8 @@ import { toTitle, toComponentName } from '../utils/slug';
 import { routesCommand } from './routes';
 
 function componentExt(framework: LabFramework): string {
+  if (framework === 'c') return '.c';
+  if (framework === 'cpp') return '.cpp';
   if (framework === 'javascript') return '.js';
   if (framework === 'typescript') return '.ts';
   if (framework === 'vue-vite') return '.vue';
@@ -19,6 +21,28 @@ function componentBody(
   title: string,
   labId: string,
 ): string {
+  if (framework === 'c') {
+    return `#include <stdio.h>
+
+int main(void) {
+    puts("${title}");
+    puts("Lab ID: ${labId}");
+    return 0;
+}
+`;
+  }
+
+  if (framework === 'cpp') {
+    return `#include <iostream>
+
+int main() {
+    std::cout << "${title}\\n";
+    std::cout << "Lab ID: ${labId}\\n";
+    return 0;
+}
+`;
+  }
+
   if (framework === 'javascript') {
     return `export default function ${componentName}(root) {
   root.innerHTML = \`
@@ -82,7 +106,12 @@ export async function createCommand(
   slug: string,
   options: { framework?: string },
 ): Promise<void> {
-  const framework = (options.framework ?? (category in appDirs ? category : 'react-vite')) as LabFramework;
+  const framework = (options.framework ??
+    (category === 'c' || category === 'cpp'
+      ? category
+      : category in appDirs
+        ? category
+        : 'react-vite')) as LabFramework;
   const labId = `${category}/${slug}`;
   const labDir = path.join(labsDir, category, slug);
   const title = toTitle(slug);
@@ -139,6 +168,29 @@ export default defineLab({
     componentBody(framework, componentName, title, labId),
   );
 
+  if (framework === 'c' || framework === 'cpp') {
+    const compiler = framework === 'c' ? 'cc' : 'c++';
+    const standard = framework === 'c' ? '-std=c17' : '-std=c++20';
+    await fs.writeFile(
+      path.join(labDir, 'Makefile'),
+      `SRC := src/${componentName}${ext}
+OUT := build/${slug}
+
+.PHONY: run build clean
+
+run: build
+\t./$(OUT)
+
+build:
+\tmkdir -p build
+\t${compiler} ${standard} -Wall -Wextra -pedantic $(SRC) -o $(OUT)
+
+clean:
+\trm -rf build
+`,
+    );
+  }
+
   await fs.writeFile(
     path.join(labDir, 'README.md'),
     `# ${title}
@@ -158,13 +210,13 @@ TODO
 ## How to run
 
 \`\`\`bash
-pnpm lab:dev ${labId}
+${framework === 'c' || framework === 'cpp' ? `make -C labs/${labId} run` : `pnpm lab:dev ${labId}`}
 \`\`\`
 
 ## How to test
 
 \`\`\`bash
-pnpm lab:test ${labId}
+${framework === 'c' || framework === 'cpp' ? `make -C labs/${labId} build` : `pnpm lab:test ${labId}`}
 \`\`\`
 `,
   );
@@ -200,9 +252,10 @@ TODO
 `,
   );
 
-  await fs.writeFile(
-    path.join(labDir, 'tests', `${slug}.spec.ts`),
-    `import { test, expect } from '@playwright/test';
+  if (framework !== 'c' && framework !== 'cpp') {
+    await fs.writeFile(
+      path.join(labDir, 'tests', `${slug}.spec.ts`),
+      `import { test, expect } from '@playwright/test';
 
 test.describe('${labId}', () => {
   test('renders lab page', async ({ page }) => {
@@ -212,7 +265,8 @@ test.describe('${labId}', () => {
   });
 });
 `,
-  );
+    );
+  }
 
   await fs.writeFile(
     path.join(labDir, 'results', 'manual-check.md'),
