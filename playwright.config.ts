@@ -6,6 +6,9 @@ export default defineConfig({
   testDir: 'labs',
   testMatch: ['**/*.spec.ts'],
   fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  workers: process.env.CI ? 2 : undefined,
+  retries: process.env.CI ? 1 : 0,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
@@ -20,7 +23,7 @@ export default defineConfig({
   webServer: {
     command: process.env.LAB_TEST_SERVER_COMMAND ?? 'pnpm dev:react',
     url: baseURL,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
   projects: [

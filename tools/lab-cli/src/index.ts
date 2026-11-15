@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { testBrowserCommand } from './commands/test-browser';
 import { runCommand } from './commands/run';
 import { doctorCommand } from './commands/doctor';
 import { Command } from 'commander';
@@ -43,6 +44,7 @@ program
   .option('--write', 'Write exported notes to OBSIDIAN_VAULT_PATH')
   .action(exportCommand);
 
+program.command('test-browser').argument('<framework>').action(testBrowserCommand);
 program.command('run').argument('<id>').action(runCommand);
 program.command('doctor').argument('<id>').action(doctorCommand);
 

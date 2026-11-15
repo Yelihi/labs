@@ -172,3 +172,6 @@ CLI 타입 검사와 구조·회귀 테스트도 실행합니다. 어느 명령�
 
 전체 실험의 정답 검증이나 GStreamer·브라우저 테스트를 포함하는 워크플로는 아닙니다.
 Windows/WSL2는 이 매트릭스에 포함되지 않습니다. 실제 통과 여부는 Actions의 실행별 결과를 확인합니다.
+
+JavaScript·React 브라우저 실습은 별도의 [Browser labs CI](https://github.com/Yelihi/labs/actions/workflows/browser-labs.yml)에서 Chromium으로 검사합니다.
+대상과 실행법은 [사용 가이드](./usage-guide.md#브라우저-실험의-chromium-ci)를 참고하세요.

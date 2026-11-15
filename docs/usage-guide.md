@@ -125,3 +125,24 @@ pnpm --filter @frontend-labs/lab-cli test
 
 위 명령은 CLI 회귀 검사와 전체 실험의 구조 검사를 실행합니다.
 루트에 자료 폴더를 다시 만들거나 필수 구조를 빠뜨리면 구조 검사가 실패합니다.
+
+## 브라우저 실험의 Chromium CI
+
+[Browser labs](https://github.com/Yelihi/labs/actions/workflows/browser-labs.yml)는
+`main` 푸시·PR·수동 실행 때 Ubuntu에서 다음 실행 환경을 각각 검사합니다.
+
+```bash
+pnpm lab:test:browser javascript
+pnpm lab:test:browser react-vite
+pnpm lab:test:browser next-app
+```
+
+`lab.config.ts`의 framework로 실험을 자동 선택하므로 React/Vite의 CSS 실험도 포함됩니다.
+현재 JavaScript 1개, React/Vite 6개, Next.js 1개 실험이 대상입니다.
+각 작업이 서버를 시작하고 Chromium 테스트를 실행합니다. Python·순수 Node·C/C++는 이 목록에 포함하지 않습니다.
+로컬 실행 전에는 `pnpm exec playwright install chromium`이 필요합니다.
+
+CI에서는 `test.only`를 허용하지 않고 기존 서버를 재사용하지 않습니다. 워커는 2개이며 실패 시 1회 재시도합니다.
+HTML 리포트와 실패 스크린샷·영상, 첫 재시도의 trace를 작업별 artifact로 7일간 보관합니다.
+3D 실험은 소프트웨어 WebGL로 캔버스 생성·컨텍스트 상태를 확인하며 GPU 성능을 검증하지 않습니다.
+다른 기본 테스트는 페이지 제목·실험 영역 표시를 확인하는 smoke test입니다.
