@@ -17,6 +17,8 @@ export function SearchWithNetworkAndWorker() {
 
     const requestIdRef = useRef(0);
     const latestIdRef = useRef(0);
+    const canceledIdRef = useRef<number | null>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortRef = useRef<AbortController | null>(null);
 
     // paging
@@ -38,25 +40,20 @@ export function SearchWithNetworkAndWorker() {
 
         w.onmessage = (e: MessageEvent<FromWorker>) => {
             const msg = e.data;
-            const t = performance.now().toFixed(1);
+            if (msg.requestId !== latestIdRef.current) return;
+            if (msg.requestId === canceledIdRef.current && msg.type !== "CANCELED") return;
 
             if (msg.type === "PROGRESS") {
-                if (msg.requestId !== latestIdRef.current) return;
                 setStatus(`Worker progress ${msg.done}/${msg.total}`);
                 return;
             }
 
             if (msg.type === "CANCELED") {
-                if (msg.requestId !== latestIdRef.current) return;
                 setStatus(`Worker canceled id=${msg.requestId}`);
                 return;
             }
 
             if (msg.type === "RESULT") {
-                if (msg.requestId !== latestIdRef.current) {
-                    console.log(`[main] t=${t} RESULT id=${msg.requestId} dropped`);
-                    return;
-                }
                 setIndices(msg.indices);
                 setCount(msg.indices.length);
                 setStatus(`Done id=${msg.requestId}`);
@@ -70,6 +67,8 @@ export function SearchWithNetworkAndWorker() {
         };
 
         return () => {
+            abortRef.current?.abort();
+            latestIdRef.current = 0;
             w.terminate();
             workerRef.current = null;
         };
@@ -93,6 +92,9 @@ export function SearchWithNetworkAndWorker() {
             workerRef.current.postMessage(cancelMsg);
         }
 
+        setIndices(new Uint32Array());
+        setCount(0);
+        setPage(0);
         setStatus(`Fetching... id=${id}`);
 
         try {
@@ -101,7 +103,7 @@ export function SearchWithNetworkAndWorker() {
             const t1 = performance.now();
 
             // stale fetch drop
-            if (id !== latestIdRef.current) return;
+            if (id !== latestIdRef.current || ac.signal.aborted) return;
 
             setItems(list);
             setStatus(`Fetched in ${(t1 - t0).toFixed(1)}ms (delay=${delayMs.toFixed(0)}ms). Worker processing...`);
@@ -109,6 +111,7 @@ export function SearchWithNetworkAndWorker() {
             const startMsg: ToWorker = { type: "START", requestId: id, query: nextQuery, list };
             workerRef.current.postMessage(startMsg);
         } catch (err: unknown) {
+            if (id !== latestIdRef.current) return;
             if (typeof err === "object" && err !== null && "name" in err && err.name === "AbortError") {
                 setStatus("Fetch aborted");
                 return;
@@ -117,7 +120,9 @@ export function SearchWithNetworkAndWorker() {
         }
     }
 
-    async function cancelRequest() {
+    function cancelRequest() {
+        if (debounceRef.current !== null) clearTimeout(debounceRef.current);
+        canceledIdRef.current = latestIdRef.current;
         if (abortRef.current) abortRef.current.abort();
         if (workerRef.current) {
             const cancelMsg: ToWorker = { type: "CANCEL", requestId: latestIdRef.current };
@@ -128,13 +133,17 @@ export function SearchWithNetworkAndWorker() {
 
     // 간단 debounce (200ms)
     useEffect(() => {
-        const h = setTimeout(() => runSearch(query), 200);
-        return () => clearTimeout(h);
+        if (!query) return;
+        debounceRef.current = setTimeout(() => runSearch(query), 200);
+        return () => {
+            if (debounceRef.current !== null) clearTimeout(debounceRef.current);
+        };
     }, [query]);
 
     return (
         <div style={{ fontFamily: "system-ui", padding: 16 }}>
-            <h1>Network + Worker Cancel Strategy</h1>
+            <h2>Network + Worker Cancel Strategy</h2>
+            <p>AbortController로 취소 가능한 모의 네트워크 응답(20만 항목)을 실제 Worker에서 처리합니다.</p>
 
             <input
                 value={query}
@@ -148,7 +157,7 @@ export function SearchWithNetworkAndWorker() {
             </div>
 
             <div style={{ marginTop: 10 }}>
-                <button onClick={cancelRequest} disabled={!workerRef.current}>Cancel current request</button>
+                <button onClick={cancelRequest}>Cancel current request</button>
             </div>
 
             <div style={{ marginTop: 12 }}>

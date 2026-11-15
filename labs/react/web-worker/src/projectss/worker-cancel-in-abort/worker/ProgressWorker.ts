@@ -47,8 +47,6 @@ export class ProgressWorker {
         const indices: number[] = []
 
         let processed = 0;
-        // CPU 부하용 변수 (dead-code 제거 방지)
-        const cpu = 0;
         let chunkCount = 0;
 
         while (processed < totalItems) {
@@ -81,8 +79,13 @@ export class ProgressWorker {
             await yieldNext();
         }
 
+        if (!this.isLatest(requestId)) return;
+        if (this.isCanceled(requestId)) {
+            post({ type: "CANCELED", requestId });
+            return;
+        }
+
         // 결과 전송 (indices는 TypedArray로 transfer)
-        console.log(cpu)
         const typed = new Uint32Array(indices);
         post({ type: "RESULT", requestId, indices: typed }, [typed.buffer]);
 
