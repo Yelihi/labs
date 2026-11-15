@@ -4,6 +4,7 @@ import type { LabFramework } from '@frontend-labs/lab-core';
 import { labsDir, appDirs } from '../utils/paths';
 import { toTitle, toComponentName } from '../utils/slug';
 import { routesCommand } from './routes';
+import { frameworkDev } from '../utils/frameworks';
 
 function componentExt(framework: LabFramework): string {
   if (framework === 'c') return '.c';
@@ -119,16 +120,13 @@ export async function createCommand(
   const route = `/labs/${category}/${slug}`;
   const today = new Date().toISOString().slice(0, 10);
   const ext = componentExt(framework);
+  const dev = frameworkDev[framework];
 
   if (await fs.pathExists(labDir)) {
     throw new Error(`Lab already exists: ${labId}`);
   }
 
-  await fs.ensureDir(path.join(labDir, 'src', 'components'));
-  await fs.ensureDir(path.join(labDir, 'src', 'styles'));
-  await fs.ensureDir(path.join(labDir, 'tests'));
-  await fs.ensureDir(path.join(labDir, 'results', 'screenshots'));
-  await fs.ensureDir(path.join(labDir, 'notes'));
+  await fs.ensureDir(path.join(labDir, 'src'));
 
   await fs.writeFile(
     path.join(labDir, 'lab.config.ts'),
@@ -143,22 +141,6 @@ export default defineLab({
   route: '${route}',
   tags: ['${category}', '${slug}'],
   createdAt: '${today}',
-  browsers: {
-    automated: ['chromium', 'firefox', 'webkit'],
-    manual: ['chrome', 'edge', 'safari'],
-  },
-  goals: [
-    'Define the core experiment question.',
-    'Build a minimal reproducible demo.',
-    'Verify behavior across browsers.',
-    'Export the result to Obsidian notes.',
-  ],
-  outputs: {
-    sourceNote: 'notes/source-note.md',
-    conceptNote: 'notes/concept-note.md',
-    labNote: 'notes/lab-note.md',
-    interviewNote: 'notes/interview-note.md',
-  },
 });
 `,
   );
@@ -203,56 +185,30 @@ clean:
 
 \`${framework}\`
 
-## Goal
+## Experiment question
 
 TODO
 
 ## How to run
 
 \`\`\`bash
-${framework === 'c' || framework === 'cpp' ? `make -C labs/${labId} run` : `pnpm lab:dev ${labId}`}
+${framework === 'c' || framework === 'cpp' ? `make -C labs/${labId} run` : `pnpm ${dev.script}`}
 \`\`\`
 
-## How to test
+${dev.port ? `Open http://localhost:${dev.port}${route}\n\n` : ''}## How to test
 
 \`\`\`bash
-${framework === 'c' || framework === 'cpp' ? `make -C labs/${labId} build` : `pnpm lab:test ${labId}`}
+pnpm lab:test ${labId}
 \`\`\`
-`,
-  );
 
-  await fs.writeFile(
-    path.join(labDir, 'plan.md'),
-    `# PLAN - ${title}
+## Observations and conclusion
 
-## Experiment Question
-
-TODO
-
-## Hypothesis
-
-TODO
-
-## Implementation Plan
-
-TODO
-
-## Browser Matrix
-
-- Chromium
-- Firefox
-- WebKit
-- Chrome
-- Edge
-- Safari
-
-## Manual Check
-
-TODO
+Record findings here. Add notes/ or results/ only when needed.
 `,
   );
 
   if (framework !== 'c' && framework !== 'cpp') {
+    await fs.ensureDir(path.join(labDir, 'tests'));
     await fs.writeFile(
       path.join(labDir, 'tests', `${slug}.spec.ts`),
       `import { test, expect } from '@playwright/test';
@@ -267,28 +223,6 @@ test.describe('${labId}', () => {
 `,
     );
   }
-
-  await fs.writeFile(
-    path.join(labDir, 'results', 'manual-check.md'),
-    `# Manual Check - ${title}\n\nTODO\n`,
-  );
-
-  await fs.writeFile(
-    path.join(labDir, 'notes', 'source-note.md'),
-    `# SOURCE - ${title}\n\nTODO\n`,
-  );
-  await fs.writeFile(
-    path.join(labDir, 'notes', 'concept-note.md'),
-    `# CONCEPT - ${title}\n\nTODO\n`,
-  );
-  await fs.writeFile(
-    path.join(labDir, 'notes', 'lab-note.md'),
-    `# LAB - ${title}\n\nTODO\n`,
-  );
-  await fs.writeFile(
-    path.join(labDir, 'notes', 'interview-note.md'),
-    `# INTERVIEW - ${title}\n\nTODO\n`,
-  );
 
   console.log(`Created lab: ${labId} [${framework}]`);
   await routesCommand();

@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev python/gst-soft-stablizer
+pnpm dev:python
 ```
 
 ## How to test

@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev python/gst-bash
+pnpm dev:python
 ```
 
 ## How to test

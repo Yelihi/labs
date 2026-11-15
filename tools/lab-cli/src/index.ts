@@ -2,7 +2,6 @@
 
 import { Command } from 'commander';
 import { createCommand } from './commands/create';
-import { devCommand } from './commands/dev';
 import { testCommand } from './commands/test';
 import { reportCommand } from './commands/report';
 import { exportCommand } from './commands/export';
@@ -22,11 +21,6 @@ program
     'Lab framework: react-vite | next-app | javascript | typescript | vue-vite | python | c | cpp',
   )
   .action(createCommand);
-
-program
-  .command('dev')
-  .argument('<id>', 'Lab id, e.g. css/container-query')
-  .action(devCommand);
 
 program
   .command('test')
@@ -58,4 +52,4 @@ const argv =
     ? [process.argv[0]!, process.argv[1]!, ...process.argv.slice(3)]
     : process.argv;
 
-program.parse(argv);
+await program.parseAsync(argv);

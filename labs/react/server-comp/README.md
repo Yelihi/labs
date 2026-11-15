@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev react/server-comp
+pnpm dev:next
 ```
 
 ## How to test

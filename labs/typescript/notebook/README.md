@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev typescript/notebook
+pnpm dev:typescript
 ```
 
 ## How to test

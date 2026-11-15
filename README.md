@@ -13,9 +13,21 @@ pnpm install
 ```bash
 pnpm lab:create css container-query   # scaffold a new lab
 pnpm dev:react                        # start the Vite dev server
-pnpm lab:test css/container-query     # run Playwright tests for the lab
-pnpm lab:export css/container-query   # export notes to Obsidian
+pnpm lab:test css/container-query     # run Chromium tests with the matching app server
+pnpm lab:test css/container-query --core # run Chromium / Firefox / WebKit
 ```
+
+Run the matching `pnpm dev:*` command from the repository root. React labs share
+`http://localhost:5173`; select a lab from the index. Each new lab README includes
+its direct start command and URL.
+
+New web labs contain only `README.md`, `lab.config.ts`, source code, and a smoke test.
+C/C++ labs get a Makefile instead of a browser test. Add notes and results only when needed.
+Existing lab files are preserved.
+
+`lab:test` runs tests and returns their exit code; C/C++ labs run a compile check.
+Use `--project <browser>`, `--core`, or `--full` to select browsers.
+The raw `e2e` / Playwright commands below still target the React server.
 
 ## playwright
 
@@ -36,3 +48,5 @@ pnpm e2e:core           # Playwright on chromium / firefox / webkit
 ```
 
 See [`docs/ai-agent-guide.md`](./docs/ai-agent-guide.md) for AI-agent usage policy.
+
+See [`docs/usage-guide.md`](./docs/usage-guide.md) for setup, framework-specific testing, and optional note export.

@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev css/grid-layout
+pnpm dev:react
 ```
 
 ## How to test

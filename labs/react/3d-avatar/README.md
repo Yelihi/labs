@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev react/3d-avatar
+pnpm dev:react
 ```
 
 ## How to test

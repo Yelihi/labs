@@ -37,14 +37,14 @@ export interface LabConfig {
   tags: string[];
   createdAt: string;
 
-  browsers: {
+  browsers?: {
     automated: BrowserTarget[];
     manual: BrowserTarget[];
   };
 
-  goals: string[];
+  goals?: string[];
 
-  outputs: {
+  outputs?: {
     sourceNote: string;
     conceptNote: string;
     labNote: string;

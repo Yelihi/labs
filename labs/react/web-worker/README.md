@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev react/web-worker
+pnpm dev:react
 ```
 
 ## How to test

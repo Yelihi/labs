@@ -11,7 +11,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev css/container-query
+pnpm dev:react
 ```
 
 ## How to test

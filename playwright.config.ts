@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const baseURL = process.env.LAB_TEST_BASE_URL ?? 'http://localhost:5173';
+
 export default defineConfig({
   testDir: 'labs',
   testMatch: ['**/*.spec.ts'],
@@ -10,14 +12,14 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/playwright-results.json' }],
   ],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'pnpm dev:react',
-    url: 'http://localhost:5173',
+    command: process.env.LAB_TEST_SERVER_COMMAND ?? 'pnpm dev:react',
+    url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,
   },

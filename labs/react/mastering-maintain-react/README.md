@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev react/mastering-maintain-react
+pnpm dev:react
 ```
 
 ## How to test

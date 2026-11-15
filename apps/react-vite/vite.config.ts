@@ -8,8 +8,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@frontend-labs/lab-core': path.resolve(__dirname, '../../packages/lab-core/src'),
-      '@frontend-labs/ui': path.resolve(__dirname, '../../packages/ui/src'),
-      '@frontend-labs/test-utils': path.resolve(__dirname, '../../packages/test-utils/src'),
     },
   },
   server: {

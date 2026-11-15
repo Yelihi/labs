@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev typescript/domain-develop-with-functional-programing
+pnpm dev:typescript
 ```
 
 ## How to test

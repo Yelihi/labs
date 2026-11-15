@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev react/react-components
+pnpm dev:react
 ```
 
 ## How to test

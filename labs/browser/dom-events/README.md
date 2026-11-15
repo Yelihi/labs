@@ -15,7 +15,7 @@ TODO
 ## How to run
 
 ```bash
-pnpm lab:dev browser/dom-events
+pnpm dev:javascript
 ```
 
 ## How to test
