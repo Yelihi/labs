@@ -36,7 +36,6 @@ const queryableFunctions: WorkerListeners = {
     },
     cancel: (requestId: number) => {
         progressWorker.markCanceled(requestId);
-        reply('canceled', requestId);
     },
 };
 

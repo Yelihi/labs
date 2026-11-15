@@ -58,7 +58,7 @@ export class ProgressWorker {
         let cpu = 0;
         let chunkCount = 0;
 
-        while (processed < totalItems) {
+        while (processed < totalItems && (!config.maxResults || indices.length < config.maxResults)) {
             if (!this.isLatest(requestId)) {
                 return;
             }
@@ -75,7 +75,6 @@ export class ProgressWorker {
                     indices.push(i)
                 }
                 if (config.maxResults && indices.length >= config.maxResults) {
-                    processed = totalItems; // 전체 종료처럼 처리
                     break;
                 }
 
@@ -99,6 +98,13 @@ export class ProgressWorker {
 
             // ✅ yield: 다음 tick으로 양보 → 메시지 처리(START/CANCEL) 기회 확보
             await yieldNext();
+        }
+
+        // 마지막 yield 동안 들어온 취소/새 검색도 결과를 보내기 전에 확인한다.
+        if (!this.isLatest(requestId)) return;
+        if (this.isCanceled(requestId)) {
+            reply('canceled', requestId);
+            return;
         }
 
         // 결과 전송 (indices는 TypedArray로 transfer)

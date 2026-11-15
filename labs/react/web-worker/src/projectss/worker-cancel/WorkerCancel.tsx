@@ -10,7 +10,7 @@ function WorkerCancel() {
 
     const [query, setQuery] = useState("");
     const [size, setSize] = useState(0)
-    const [ready, setReady] = useState(true)
+    const [ready, setReady] = useState(false)
     const [status, setStatus] = useState('Idle')
     const [count, setCount] = useState(0)
 
@@ -38,7 +38,7 @@ function WorkerCancel() {
         for (let i = startAt; i < end; i++) {
             out.push(items[indices[i]]);
         }
-        return out.length === 0 ? items.slice(0, pageSize) : out;
+        return out;
     }, [indices, startAt, pageSize, items]);
 
     function start(q: string) {
@@ -63,7 +63,9 @@ function WorkerCancel() {
     }
 
     useEffect(() => {
-        workerRef.current = new QueryableWorker<WorkerListeners, WorkerEvents>('./worker/query-worker.ts')
+        workerRef.current = new QueryableWorker<WorkerListeners, WorkerEvents>(
+            new Worker(new URL('./worker/query-worker.ts', import.meta.url), { type: 'module' })
+        )
 
         // message 등록
         const readyRm = workerRef.current.addListener('ready', (size: number) => {
@@ -86,6 +88,7 @@ function WorkerCancel() {
             }
             console.log(`[main] t=${t} RESULT id=${requestId} applied count=${indices.length}`);
             setIndices(indices);
+            setPage(0);
             setCount(indices.length);
             setStatus(`Done id=${requestId}`);
             return
@@ -115,14 +118,6 @@ function WorkerCancel() {
             workerRef.current = null;
         }
     }, [])
-
-    useEffect(() => {
-        if (workerRef.current && items.length > 0) {
-            workerRef.current.sendQuery('initialized', items)
-        }
-
-    }, [items])
-
 
     return (
         <div style={{ fontFamily: "system-ui", padding: 16 }}>

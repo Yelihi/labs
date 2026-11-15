@@ -15,8 +15,8 @@ export class QueryableWorker<
     public worker: Worker;
     private listeners = new Map<keyof TEvents, Set<AnyFn>>();
 
-    constructor(url: URL | string) {
-        this.worker = new Worker(new URL(url, import.meta.url), { type: "module" });
+    constructor(worker: Worker) {
+        this.worker = worker;
 
         this.worker.onmessage = (event) => {
             const data = event.data;

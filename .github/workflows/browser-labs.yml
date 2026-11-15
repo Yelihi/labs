@@ -37,6 +37,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium and system libraries
         run: pnpm exec playwright install --with-deps chromium
+      - name: Test worker cancellation boundaries
+        if: matrix.framework == 'react-vite'
+        run: pnpm exec vitest run labs/react/web-worker/tests/progress-worker.test.ts
       - name: Test all labs for this framework
         run: pnpm lab:test:browser ${{ matrix.framework }}
       - uses: actions/upload-artifact@v5

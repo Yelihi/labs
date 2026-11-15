@@ -72,6 +72,7 @@ export const useAutoCompleteInteraction = ({
         }
 
         if (event.key === "Escape") {
+            event.preventDefault();
             close();
         }
     };

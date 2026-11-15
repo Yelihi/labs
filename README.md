@@ -56,5 +56,5 @@ Use `pnpm lab:doctor <id>`, `pnpm lab:run <id>`, and `pnpm lab:test <id>`.
 
 [Local runtime CI](https://github.com/Yelihi/labs/actions/workflows/local-runtimes.yml) checks Node.js, Python, C and C++ on Ubuntu and macOS for pushes and pull requests.
 
-[Browser CI](https://github.com/Yelihi/labs/actions/workflows/browser-labs.yml) runs all JavaScript, React/Vite (including CSS), and Next.js lab smoke tests in Chromium.
+[Browser CI](https://github.com/Yelihi/labs/actions/workflows/browser-labs.yml) runs all JavaScript, React/Vite (including CSS), and Next.js lab browser tests in Chromium. React autocomplete and Web Worker tests cover interactions and real worker execution.
 Use `pnpm lab:test:browser javascript`, `pnpm lab:test:browser react-vite`, or `pnpm lab:test:browser next-app` locally.
