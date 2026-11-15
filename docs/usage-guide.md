@@ -2,6 +2,8 @@
 
 실험 코드는 `labs/<category>/<slug>/`, 실행 환경은 `apps/`에서 관리합니다.
 
+브라우저 없이 실행하는 Node.js·Python·C/C++ 실습은 [로컬 환경 가이드](./local-environments.md)를 따릅니다.
+
 ## 설치
 
 저장소의 `packageManager`에 지정된 pnpm 10.33.0을 사용합니다.
@@ -33,13 +35,14 @@ labs/<category>/<slug>/
 ├── README.md
 ├── lab.config.ts
 ├── src/<Name>Lab.<ext>
-└── tests/<slug>.spec.ts
+├── tests/<slug>.spec.ts
+└── docs/                 # 기존 자료 또는 필요할 때 추가
 ```
 
-C/C++ 실험은 브라우저 테스트 대신 `Makefile`을 생성합니다.
+C/C++ 실험도 `src/`와 `tests/`를 사용합니다. `Makefile`과 `tests/smoke.sh`로 빌드 후 실행을 확인합니다.
 `plan.md`, `notes/`, `results/`, 빈 components/styles 폴더는 만들지 않습니다.
 질문·관찰·결론은 README에 작성하고 추가 문서는 필요할 때 만듭니다.
-기존 실험의 문서와 폴더는 그대로 사용할 수 있습니다.
+기존 계획·노트·결과·첨부 자료는 각 실험의 `docs/` 아래에 보관합니다. 테스트 입력 자료는 `tests/fixtures/`에 둡니다.
 
 ## 개발
 
@@ -64,14 +67,14 @@ pnpm lab:test css/container-query                  # Chromium
 pnpm lab:test browser/dom-example --core           # Chromium, Firefox, WebKit
 pnpm lab:test react/server-example --project=webkit
 pnpm lab:test css/container-query --full            # Chrome, Edge도 포함
-pnpm lab:test cpp/vector-basics                    # make build로 컴파일 확인
+pnpm lab:test cpp/vector-basics                    # 빌드 후 실행 확인
 pnpm e2e:report                                    # 브라우저 테스트 보고서
 ```
 
 `lab:test`는 실제 프로세스를 실행하고 실패 시 0이 아닌 종료 코드를 반환합니다.
 웹 실험은 해당 framework의 서버를 자동으로 시작하거나 이미 실행 중인 서버를 사용합니다.
 Python은 해당 서버의 가상환경과 라이브러리가 준비되어 있어야 합니다.
-`--full`에는 로컬 Chrome과 Edge 설치가 필요합니다. C/C++ 검사는 실행 결과 검증이 아닌 컴파일 검사입니다.
+`--full`에는 로컬 Chrome과 Edge 설치가 필요합니다. C/C++ 검사는 컴파일과 정상 종료를 확인합니다. 알고리즘의 결과 검증은 별도 테스트로 추가합니다.
 Vue 실행 앱은 아직 없으므로 `lab:test`에서 지원하지 않습니다.
 
 루트의 `pnpm e2e*` 명령은 기존 React 서버 설정을 사용합니다.
@@ -84,7 +87,7 @@ Vue 실행 앱은 아직 없으므로 `lab:test`에서 지원하지 않습니다
 계획, 참고 자료, 관찰, 결론은 우선 README에 기록합니다.
 자동화하지 않은 브라우저 결과나 성능 수치를 확인한 것으로 기록하지 않습니다.
 
-기존 Obsidian 내보내기는 `notes/`의 아래 파일이 있을 때 사용할 수 있습니다.
+기존 Obsidian 내보내기는 `docs/notes/`의 아래 파일이 있을 때 사용할 수 있습니다.
 
 - `lab-note.md`
 - `concept-note.md`
@@ -108,3 +111,17 @@ pnpm lint
 ```
 
 `lab:report`는 아직 구현되지 않았습니다. 테스트 결과는 `pnpm e2e:report`로 확인합니다.
+
+## 구조 규칙
+
+모든 실험은 `README.md`, `lab.config.ts`, `src/`, `tests/`를 갖습니다.
+추가 문서·계획·결과·문서 이미지는 `docs/`, 테스트 입력은 `tests/fixtures/`에 둡니다.
+`package.json`, `pyproject.toml`, `Makefile` 같은 실행 설정은 실험 루트에 유지합니다.
+빌드 산출물과 Python 캐시는 Git에서 제외합니다.
+
+```bash
+pnpm --filter @frontend-labs/lab-cli test
+```
+
+위 명령은 CLI 회귀 검사와 전체 실험의 구조 검사를 실행합니다.
+루트에 자료 폴더를 다시 만들거나 필수 구조를 빠뜨리면 구조 검사가 실패합니다.

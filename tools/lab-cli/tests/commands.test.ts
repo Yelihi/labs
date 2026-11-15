@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -16,6 +16,7 @@ vi.mock('../src/commands/routes', () => ({ routesCommand: mocks.routes }));
 
 import { testCommand } from '../src/commands/test';
 import { createCommand } from '../src/commands/create';
+import { exportCommand } from '../src/commands/export';
 
 let tempDir: string | undefined;
 afterEach(async () => {
@@ -65,13 +66,13 @@ describe('test command', () => {
     expect(mocks.spawn.mock.calls[0]![1].slice(4)).toEqual(suffix);
   });
 
-  it('executes the C++ compile check', async () => {
+  it('executes the C++ test target', async () => {
     mocks.readConfig.mockResolvedValue({ framework: 'cpp' });
     mocks.spawn.mockReturnValue({ status: 2 });
     await testCommand('cpp/example', {});
     expect(mocks.spawn).toHaveBeenCalledWith(
       'make',
-      ['-C', 'labs/cpp/example', 'build'],
+      ['-C', 'labs/cpp/example', 'test'],
       expect.anything(),
     );
     expect(process.exitCode).toBe(2);
@@ -94,13 +95,14 @@ describe('minimal scaffold', () => {
       const labDir = path.join(tempDir, 'react/example');
       expect((await readdir(labDir)).sort()).toEqual(
         framework === 'cpp'
-          ? ['Makefile', 'README.md', 'lab.config.ts', 'src']
+          ? ['Makefile', 'README.md', 'lab.config.ts', 'src', 'tests']
           : ['README.md', 'lab.config.ts', 'src', 'tests'],
       );
       expect(await readdir(path.join(labDir, 'src'))).toEqual([
         framework === 'cpp' ? 'ExampleLab.cpp' : 'ExampleLab.tsx',
       ]);
-      expect(mocks.routes).toHaveBeenCalledOnce();
+      if (framework === 'cpp') expect(mocks.routes).not.toHaveBeenCalled();
+      else expect(mocks.routes).toHaveBeenCalledOnce();
       await expect(createCommand('react', 'example', { framework })).rejects.toThrow(
         'already exists',
       );
@@ -115,8 +117,8 @@ describe('generated run instructions', () => {
     ['javascript', 'pnpm dev:javascript', 5175],
     ['typescript', 'pnpm dev:typescript', 5176],
     ['python', 'pnpm dev:python', 8000],
-    ['c', 'make -C labs/browser/example run', undefined],
-    ['cpp', 'make -C labs/browser/example run', undefined],
+    ['c', 'pnpm lab:run browser/example', undefined],
+    ['cpp', 'pnpm lab:run browser/example', undefined],
   ])('documents the direct command for %s', async (framework, command, port) => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), 'lab-cli-test-'));
     mocks.paths.labsDir = tempDir;
@@ -126,4 +128,20 @@ describe('generated run instructions', () => {
     if (port) expect(readme).toContain(`http://localhost:${port}/labs/browser/example`);
     else expect(readme).not.toContain('http://localhost:');
   });
+});
+
+it('exports existing notes from docs/notes', async () => {
+  tempDir = await mkdtemp(path.join(os.tmpdir(), 'lab-cli-test-'));
+  mocks.paths.labsDir = tempDir;
+  const notes = path.join(tempDir, 'react/example/docs/notes');
+  await mkdir(notes, { recursive: true });
+  await writeFile(path.join(notes, 'concept-note.md'), '# Preserved concept');
+  mocks.readConfig.mockResolvedValue({ title: 'Example', status: 'active' });
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await exportCommand('react/example', {});
+    expect(log).toHaveBeenCalledWith('  ✓ concept-note.md');
+  } finally {
+    log.mockRestore();
+  }
 });

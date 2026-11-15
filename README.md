@@ -1,6 +1,6 @@
 # Frontend Labs
 
-A Turborepo-based monorepo for frontend research and experiments.
+A Turborepo-based monorepo for browser and local Node.js, Python, C/C++ experiments.
 
 ## Setup
 
@@ -22,10 +22,10 @@ Run the matching `pnpm dev:*` command from the repository root. React labs share
 its direct start command and URL.
 
 New web labs contain only `README.md`, `lab.config.ts`, source code, and a smoke test.
-C/C++ labs get a Makefile instead of a browser test. Add notes and results only when needed.
-Existing lab files are preserved.
+C/C++ labs use a Makefile and tests/smoke.sh. Add supporting material under docs/ only when needed.
+Existing supporting material is preserved under each lab’s docs/ directory.
 
-`lab:test` runs tests and returns their exit code; C/C++ labs run a compile check.
+`lab:test` runs tests and returns their exit code; C/C++ labs build and run a smoke test.
 Use `--project <browser>`, `--core`, or `--full` to select browsers.
 The raw `e2e` / Playwright commands below still target the React server.
 
@@ -50,3 +50,6 @@ pnpm e2e:core           # Playwright on chromium / firefox / webkit
 See [`docs/ai-agent-guide.md`](./docs/ai-agent-guide.md) for AI-agent usage policy.
 
 See [`docs/usage-guide.md`](./docs/usage-guide.md) for setup, framework-specific testing, and optional note export.
+
+For local runtimes, see [local environment setup](docs/local-environments.md).
+Use `pnpm lab:doctor <id>`, `pnpm lab:run <id>`, and `pnpm lab:test <id>`.

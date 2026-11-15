@@ -23,3 +23,7 @@ pnpm dev:react
 ```bash
 pnpm lab:test react/3d-avatar
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

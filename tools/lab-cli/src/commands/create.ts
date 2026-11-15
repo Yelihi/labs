@@ -4,6 +4,7 @@ import type { LabFramework } from '@frontend-labs/lab-core';
 import { labsDir, appDirs } from '../utils/paths';
 import { toTitle, toComponentName } from '../utils/slug';
 import { routesCommand } from './routes';
+import { writeLocalScaffold } from '../utils/local-scaffold';
 import { frameworkDev } from '../utils/frameworks';
 
 function componentExt(framework: LabFramework): string {
@@ -108,11 +109,18 @@ export async function createCommand(
   options: { framework?: string },
 ): Promise<void> {
   const framework = (options.framework ??
-    (category === 'c' || category === 'cpp'
+    (category === 'c' || category === 'cpp' || category === 'node'
       ? category
       : category in appDirs
         ? category
         : 'react-vite')) as LabFramework;
+  if (![category, slug].every((value) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))) {
+    throw new Error('Category and slug must use lowercase letters, digits and hyphens.');
+  }
+  if (!Object.hasOwn(frameworkDev, framework) || framework === 'vue-vite') {
+    throw new Error(`Unsupported framework: ${framework}`);
+  }
+  const local = framework === 'node' || framework === 'python-cli';
   const labId = `${category}/${slug}`;
   const labDir = path.join(labsDir, category, slug);
   const title = toTitle(slug);
@@ -127,6 +135,7 @@ export async function createCommand(
   }
 
   await fs.ensureDir(path.join(labDir, 'src'));
+  await fs.ensureDir(path.join(labDir, 'tests'));
 
   await fs.writeFile(
     path.join(labDir, 'lab.config.ts'),
@@ -145,20 +154,24 @@ export default defineLab({
 `,
   );
 
-  await fs.writeFile(
-    path.join(labDir, 'src', `${componentName}${ext}`),
-    componentBody(framework, componentName, title, labId),
-  );
+  if (local) {
+    await writeLocalScaffold(labDir, framework);
+  } else {
+    await fs.writeFile(
+      path.join(labDir, 'src', `${componentName}${ext}`),
+      componentBody(framework, componentName, title, labId),
+    );
+  }
 
   if (framework === 'c' || framework === 'cpp') {
-    const compiler = framework === 'c' ? 'cc' : 'c++';
+    const compiler = framework === 'c' ? '$(CC)' : '$(CXX)';
     const standard = framework === 'c' ? '-std=c17' : '-std=c++20';
     await fs.writeFile(
       path.join(labDir, 'Makefile'),
       `SRC := src/${componentName}${ext}
 OUT := build/${slug}
 
-.PHONY: run build clean
+.PHONY: run build test clean
 
 run: build
 \t./$(OUT)
@@ -166,6 +179,9 @@ run: build
 build:
 \tmkdir -p build
 \t${compiler} ${standard} -Wall -Wextra -pedantic $(SRC) -o $(OUT)
+
+test: build
+\tsh tests/smoke.sh
 
 clean:
 \trm -rf build
@@ -189,10 +205,14 @@ clean:
 
 TODO
 
+## Environment
+
+${framework === 'python-cli' ? `Create the isolated environment first:\n\n    python3 -m venv labs/${labId}/.venv\n    labs/${labId}/.venv/bin/python -m pip install -r labs/${labId}/requirements.txt\n\n` : ''}Check prerequisites with \`pnpm lab:doctor ${labId}\`. See the repository's docs/local-environments.md for installation.
+
 ## How to run
 
 \`\`\`bash
-${framework === 'c' || framework === 'cpp' ? `make -C labs/${labId} run` : `pnpm ${dev.script}`}
+${local || framework === 'c' || framework === 'cpp' ? `pnpm lab:run ${labId}` : `pnpm ${dev.script}`}
 \`\`\`
 
 ${dev.port ? `Open http://localhost:${dev.port}${route}\n\n` : ''}## How to test
@@ -203,12 +223,16 @@ pnpm lab:test ${labId}
 
 ## Observations and conclusion
 
-Record findings here. Add notes/ or results/ only when needed.
+Record findings here. Add supporting material under docs/ only when needed.
 `,
   );
 
-  if (framework !== 'c' && framework !== 'cpp') {
-    await fs.ensureDir(path.join(labDir, 'tests'));
+  if (framework === 'c' || framework === 'cpp') {
+    await fs.writeFile(
+      path.join(labDir, 'tests', 'smoke.sh'),
+      `#!/bin/sh\nset -eu\n./build/${slug}\n`,
+    );
+  } else if (!local) {
     await fs.writeFile(
       path.join(labDir, 'tests', `${slug}.spec.ts`),
       `import { test, expect } from '@playwright/test';
@@ -225,5 +249,5 @@ test.describe('${labId}', () => {
   }
 
   console.log(`Created lab: ${labId} [${framework}]`);
-  await routesCommand();
+  if (!local && framework !== 'c' && framework !== 'cpp') await routesCommand();
 }

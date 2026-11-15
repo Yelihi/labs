@@ -3,6 +3,8 @@ import type { LabFramework } from '@frontend-labs/lab-core';
 type DevInfo = { script: string; port?: number };
 
 export const frameworkDev: Record<LabFramework, DevInfo> = {
+  node: { script: 'lab:run' },
+  'python-cli': { script: 'lab:run' },
   'react-vite': { script: 'dev:react', port: 5173 },
   'next-app': { script: 'dev:next', port: 5174 },
   javascript: { script: 'dev:javascript', port: 5175 },

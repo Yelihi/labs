@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "engines": {
-    "node": ">=20.10",
+    "node": ">=22.12",
     "pnpm": ">=9"
   },
   "scripts": {
@@ -33,7 +33,9 @@
     "lab:test": "pnpm --filter @frontend-labs/lab-cli lab -- test",
     "lab:report": "pnpm --filter @frontend-labs/lab-cli lab -- report",
     "lab:export": "pnpm --filter @frontend-labs/lab-cli lab -- export",
-    "lab:routes": "pnpm --filter @frontend-labs/lab-cli lab -- routes"
+    "lab:routes": "pnpm --filter @frontend-labs/lab-cli lab -- routes",
+    "lab:run": "pnpm --filter @frontend-labs/lab-cli lab -- run",
+    "lab:doctor": "pnpm --filter @frontend-labs/lab-cli lab -- doctor"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

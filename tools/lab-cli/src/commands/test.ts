@@ -1,3 +1,4 @@
+import { runLocal } from '../utils/local-runtime';
 import { spawnSync } from 'node:child_process';
 import { readLabConfig } from '../utils/lab-config';
 import { repoRoot } from '../utils/paths';
@@ -8,6 +9,11 @@ export async function testCommand(
   options: { project?: string; core?: boolean; full?: boolean },
 ): Promise<void> {
   const config = await readLabConfig(id);
+  if (config.framework === 'node' || config.framework === 'python-cli') {
+    if (options.project || options.core || options.full)
+      throw new Error('Browser options only apply to browser labs.');
+    return runLocal(id, config.framework, true);
+  }
   const native = config.framework === 'c' || config.framework === 'cpp';
   const info = frameworkDev[config.framework];
   if (!native && (!info?.port || config.framework === 'vue-vite')) {
@@ -16,7 +22,7 @@ export async function testCommand(
 
   const command = native ? 'make' : 'pnpm';
   const args = native
-    ? ['-C', `labs/${id}`, 'build']
+    ? ['-C', `labs/${id}`, 'test']
     : ['exec', 'playwright', 'test', `labs/${id}/tests`];
   if (!native) {
     if (options.project) args.push('--project', options.project);
@@ -24,7 +30,7 @@ export async function testCommand(
     else if (!options.full) args.push('--project=chromium');
   }
 
-  console.log(`${native ? 'Building' : 'Testing'} lab: ${id}`);
+  console.log(`Testing lab: ${id}`);
   console.log(`Command: ${command} ${args.join(' ')}`);
   const result = spawnSync(command, args, {
     cwd: repoRoot,

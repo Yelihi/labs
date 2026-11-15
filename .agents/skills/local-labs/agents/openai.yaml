@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Labs"
+  short_description: "로컬 실습 환경 진단과 Node·Python·C/C++ 실행 및 테스트"
+  default_prompt: "$local-labs를 사용해 이 실험의 로컬 환경을 확인하고 실행과 테스트를 검증해주세요."

@@ -21,5 +21,9 @@ make -C labs/cpp/begin-cpp run
 ## How to test
 
 ```bash
-make -C labs/cpp/begin-cpp build
+pnpm lab:test cpp/begin-cpp
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

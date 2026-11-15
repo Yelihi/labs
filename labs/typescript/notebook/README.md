@@ -23,3 +23,7 @@ pnpm dev:typescript
 ```bash
 pnpm lab:test typescript/notebook
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

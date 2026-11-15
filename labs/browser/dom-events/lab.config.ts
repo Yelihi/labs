@@ -20,9 +20,9 @@ export default defineLab({
     'Export the result to Obsidian notes.',
   ],
   outputs: {
-    sourceNote: 'notes/source-note.md',
-    conceptNote: 'notes/concept-note.md',
-    labNote: 'notes/lab-note.md',
-    interviewNote: 'notes/interview-note.md',
+    sourceNote: 'docs/notes/source-note.md',
+    conceptNote: 'docs/notes/concept-note.md',
+    labNote: 'docs/notes/lab-note.md',
+    interviewNote: 'docs/notes/interview-note.md',
   },
 });

@@ -23,3 +23,7 @@ pnpm dev:next
 ```bash
 pnpm lab:test react/server-comp
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

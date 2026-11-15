@@ -16,9 +16,9 @@ export default defineLab({
     '기존 lab 대비 품질 개선 확인',
   ],
   outputs: {
-    sourceNote: 'notes/source-note.md',
-    conceptNote: 'notes/concept-note.md',
-    labNote: 'notes/lab-note.md',
-    interviewNote: 'notes/interview-note.md',
+    sourceNote: 'docs/notes/source-note.md',
+    conceptNote: 'docs/notes/concept-note.md',
+    labNote: 'docs/notes/lab-note.md',
+    interviewNote: 'docs/notes/interview-note.md',
   },
 });

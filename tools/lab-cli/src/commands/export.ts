@@ -21,7 +21,10 @@ async function loadEnvLocal(): Promise<Record<string, string>> {
   return result;
 }
 
-async function injectFrontmatter(content: string, config: Awaited<ReturnType<typeof readLabConfig>>): Promise<string> {
+async function injectFrontmatter(
+  content: string,
+  config: Awaited<ReturnType<typeof readLabConfig>>,
+): Promise<string> {
   if (content.startsWith('---')) return content;
   const fm = [
     '---',
@@ -50,7 +53,7 @@ export async function exportCommand(id: string, options: { write?: boolean }): P
   }
 
   const config = await readLabConfig(id);
-  const notesDir = path.join(labsDir, category, slug, 'notes');
+  const notesDir = path.join(labsDir, category, slug, 'docs', 'notes');
 
   console.log(`\nLab:    ${config.title}`);
   console.log(`ID:     ${id}`);

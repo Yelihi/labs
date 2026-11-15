@@ -1,6 +1,7 @@
 export type LabStatus = 'idea' | 'active' | 'done' | 'archived';
 
 export type LabCategory =
+  | 'node'
   | 'css'
   | 'react'
   | 'vue'
@@ -16,6 +17,8 @@ export type LabCategory =
   | 'cpp';
 
 export type LabFramework =
+  | 'node'
+  | 'python-cli'
   | 'react-vite'
   | 'next-app'
   | 'vue-vite'

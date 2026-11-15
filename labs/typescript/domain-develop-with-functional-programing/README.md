@@ -23,3 +23,7 @@ pnpm dev:typescript
 ```bash
 pnpm lab:test typescript/domain-develop-with-functional-programing
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

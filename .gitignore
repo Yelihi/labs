@@ -10,3 +10,10 @@ exports/obsidian/
 .DS_Store
 *.log
 *.tsbuildinfo
+
+# Local experiment build and Python cache outputs
+labs/*/*/build/
+__pycache__/
+*.pyc
+
+.venv/

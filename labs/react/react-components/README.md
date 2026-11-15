@@ -23,3 +23,7 @@ pnpm dev:react
 ```bash
 pnpm lab:test react/react-components
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

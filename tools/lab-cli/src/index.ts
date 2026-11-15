@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { runCommand } from './commands/run';
+import { doctorCommand } from './commands/doctor';
 import { Command } from 'commander';
 import { createCommand } from './commands/create';
 import { testCommand } from './commands/test';
@@ -18,7 +20,7 @@ program
   .argument('<slug>', 'Lab slug, e.g. container-query')
   .option(
     '--framework <framework>',
-    'Lab framework: react-vite | next-app | javascript | typescript | vue-vite | python | c | cpp',
+    'Lab framework: react-vite | next-app | javascript | typescript | python | python-cli | node | c | cpp',
   )
   .action(createCommand);
 
@@ -40,6 +42,9 @@ program
   .argument('<id>', 'Lab id, e.g. css/container-query')
   .option('--write', 'Write exported notes to OBSIDIAN_VAULT_PATH')
   .action(exportCommand);
+
+program.command('run').argument('<id>').action(runCommand);
+program.command('doctor').argument('<id>').action(doctorCommand);
 
 program.command('list').action(listCommand);
 

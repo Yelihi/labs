@@ -23,3 +23,7 @@ pnpm dev:python
 ```bash
 pnpm lab:test python/gst-soft-stablizer
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

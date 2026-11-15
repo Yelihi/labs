@@ -19,3 +19,7 @@ pnpm dev:react
 ```bash
 pnpm lab:test css/container-query
 ```
+
+## Supporting material
+
+Existing plans, notes, and results are preserved in [docs/](./docs/).

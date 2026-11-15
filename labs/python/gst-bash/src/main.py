@@ -36,8 +36,8 @@ def create_stabilizer_pipeline():
         return None
     
     # 속성 설정
-    source.set_property("location", "samples/input.mp4")
-    sink.set_property("location", "outputs/stabilized.avi")
+    source.set_property("location", "tests/fixtures/input.mp4")
+    sink.set_property("location", "docs/results/outputs/stabilized.avi")
     
     # 파이프라인에 추가
     pipeline.add(source, decoder, encoder, sink)
@@ -66,7 +66,7 @@ def run(input_path, output_path):
 
         H, confidence = stabilizer.process_frame(frame)
         output = warper.process(frame, H)
-        output_path = "outputs/stabilized.avi"
+        output_path = "docs/results/outputs/stabilized.avi"
 
         if writer is None:
             h, w = output.shape[:2]
@@ -89,4 +89,4 @@ def run(input_path, output_path):
 
 
 if __name__ == "__main__":
-    run('samples/input.mp4', 'outputs/stabilized.avi')
+    run('tests/fixtures/input.mp4', 'docs/results/outputs/stabilized.avi')
