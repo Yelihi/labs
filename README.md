@@ -53,3 +53,5 @@ See [`docs/usage-guide.md`](./docs/usage-guide.md) for setup, framework-specific
 
 For local runtimes, see [local environment setup](docs/local-environments.md).
 Use `pnpm lab:doctor <id>`, `pnpm lab:run <id>`, and `pnpm lab:test <id>`.
+
+[Local runtime CI](https://github.com/Yelihi/labs/actions/workflows/local-runtimes.yml) checks Node.js, Python, C and C++ on Ubuntu and macOS for pushes and pull requests.

@@ -1,0 +1,85 @@
+name: Local runtimes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-runtimes-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-runtimes:
+    name: Local runtimes (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    defaults:
+      run:
+        shell: bash
+    env:
+      CC: cc
+      CXX: c++
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare isolated Python environment
+        run: |
+          python -m venv labs/python/runtime-basics/.venv
+          labs/python/runtime-basics/.venv/bin/python -m pip install -r labs/python/runtime-basics/requirements.txt
+
+      - name: Node.js — diagnose, run, test
+        run: |
+          pnpm lab:doctor node/runtime-basics
+          pnpm lab:run node/runtime-basics
+          pnpm lab:test node/runtime-basics
+
+      - name: Python — diagnose, run, test
+        run: |
+          pnpm lab:doctor python/runtime-basics
+          pnpm lab:run python/runtime-basics
+          pnpm lab:test python/runtime-basics
+
+      - name: C — diagnose, run, test
+        run: |
+          pnpm lab:doctor c/runtime-basics
+          pnpm lab:run c/runtime-basics
+          pnpm lab:test c/runtime-basics
+
+      - name: C++ — diagnose, run, test
+        run: |
+          pnpm lab:doctor cpp/runtime-basics
+          pnpm lab:run cpp/runtime-basics
+          pnpm lab:test cpp/runtime-basics
+
+      - name: CLI typecheck
+        run: pnpm exec tsc --noEmit -p tools/lab-cli/tsconfig.json --ignoreDeprecations 6.0
+
+      - name: CLI, structure, and unit regressions
+        run: pnpm exec vitest run tools/lab-cli/tests labs/react/mastering-maintain-react/tests/payload.test.ts

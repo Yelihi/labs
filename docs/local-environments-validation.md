@@ -34,7 +34,7 @@ CLI 타입 검사와 변경 코드 린트, 스킬 형식 검증, frozen lockfile
 
 ## 확인하지 않은 범위
 
-- Ubuntu/Linux 및 Windows WSL2의 실제 실행은 아직 하지 않았습니다. 설치 가이드와 지원 대상으로만 명시합니다.
+- 위 로컬 검증은 macOS에서 실행했습니다. 이후 Ubuntu/macOS 자동 검증 결과는 [Local runtimes CI](https://github.com/Yelihi/labs/actions/workflows/local-runtimes.yml)에서 확인합니다. Windows WSL2는 아직 실행 검증하지 않았습니다.
 - 기존 Python 웹/GStreamer 실험은 별도 시스템 라이브러리와 등록 문제 때문에 이번 검증에서 제외했습니다.
 - C/C++ 기본 smoke test는 정상 실행을 확인하며 알고리즘의 정답을 검증하지 않습니다.
 - Node 26의 tsx 실행 중 module.register 관련 deprecation 경고가 있었으나 검증 명령은 성공했습니다.

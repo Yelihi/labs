@@ -158,3 +158,17 @@ AI는 실제 실행 결과와 미검증 환경을 구분해 기록해야 합니�
 ## 검증 기록
 
 실행 결과는 [local-environments-validation.md](./local-environments-validation.md)에 기록합니다.
+
+## GitHub Actions
+
+[Local runtimes](https://github.com/Yelihi/labs/actions/workflows/local-runtimes.yml)는
+`main` 푸시, PR, 수동 실행 시 Ubuntu 24.04와 macOS 15에서 각각 검사합니다.
+Node.js 버전은 `.nvmrc`, pnpm 버전은 `package.json`을 따르며 Python은 3.12입니다.
+호스팅 러너의 C/C++ 컴파일러와 Make를 사용하고 `lab:doctor`가 실제 컴파일·실행으로 확인합니다.
+
+각 OS에서 네 `runtime-basics` 실험의 `lab:doctor` → `lab:run` → `lab:test`를 실행합니다.
+Python 가상환경은 매번 새로 만들며, pnpm 저장소 캐시만 재사용합니다.
+CLI 타입 검사와 구조·회귀 테스트도 실행합니다. 어느 명령이든 실패하면 해당 job도 실패합니다.
+
+전체 실험의 정답 검증이나 GStreamer·브라우저 테스트를 포함하는 워크플로는 아닙니다.
+Windows/WSL2는 이 매트릭스에 포함되지 않습니다. 실제 통과 여부는 Actions의 실행별 결과를 확인합니다.
