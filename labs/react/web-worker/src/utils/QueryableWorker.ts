@@ -1,4 +1,4 @@
-type AnyFn = (...args: any[]) => any;
+type AnyFn = (...args: never[]) => unknown;
 type QueryMap = Record<string, AnyFn>;
 type EventMap = Record<string, AnyFn>;
 
@@ -13,7 +13,7 @@ export class QueryableWorker<
     TEvents extends EventMap
 > {
     public worker: Worker;
-    private listeners = new Map<keyof TEvents, Set<AnyFn>>();
+    private listeners = new Map<keyof TEvents, Set<TEvents[keyof TEvents]>>();
 
     constructor(worker: Worker) {
         this.worker = worker;
@@ -26,7 +26,7 @@ export class QueryableWorker<
                 const handlers = this.listeners.get(eventName);
 
                 handlers?.forEach((handler) => {
-                    handler(...data.queryMethodArguments);
+                    handler(...data.queryMethodArguments as Parameters<TEvents[keyof TEvents]>);
                 });
             }
         };

@@ -1,5 +1,4 @@
 import WorkerCancel from "./projectss/worker-cancel/WorkerCancel";
-import { SearchWithNetworkAndWorker } from "./projectss/worker-cancel-in-abort/SearchWithNetworkAndWorker";
 
 
 export default function WebWorkerLab() {

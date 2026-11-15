@@ -1,4 +1,4 @@
-import type { IWorkerState, JobConfig, YieldFn, FromWorker, WorkerEvents } from "./types";
+import type { IWorkerState, JobConfig, YieldFn, WorkerEvents } from "./types";
 
 
 export class ProgressWorker {
@@ -106,6 +106,8 @@ export class ProgressWorker {
             reply('canceled', requestId);
             return;
         }
+
+        console.debug(`[worker] CPU checksum id=${requestId}: ${cpu}`);
 
         // 결과 전송 (indices는 TypedArray로 transfer)
         const typed = new Uint32Array(indices);

@@ -56,14 +56,14 @@ function reply<K extends keyof WorkerEvents>(
     }, transfer);
 }
 
-function defaultReply(message: string) {
+function defaultReply(message: unknown) {
     self.postMessage({
         type: "DEFAULT_REPLY",
         payload: message,
     })
 }
 
-self.onmessage = (event: MessageEvent<QueryMessage>) => {
+self.onmessage = (event: MessageEvent<unknown>) => {
     const data = event.data;
 
     if (isQueryMessage(data)) {
@@ -74,7 +74,7 @@ self.onmessage = (event: MessageEvent<QueryMessage>) => {
             return;
         }
 
-        (fn as (...args: any[]) => void)(...data.queryMethodArguments);
+        (fn as (...args: QueryMessage['queryMethodArguments']) => void)(...data.queryMethodArguments);
         return;
     }
 
@@ -82,12 +82,12 @@ self.onmessage = (event: MessageEvent<QueryMessage>) => {
 }
 
 
-function isQueryMessage(data: any): data is QueryMessage {
+function isQueryMessage(data: unknown): data is QueryMessage {
     return (
         typeof data === "object" &&
         data !== null &&
         "queryMethod" in data &&
         "queryMethodArguments" in data &&
-        Array.isArray((data as QueryMessage).queryMethodArguments)
+        Array.isArray(data.queryMethodArguments)
     );
 }

@@ -101,7 +101,6 @@ function WorkerCancel() {
             return;
         })
         const errorRm = workerRef.current.addListener('error', (requestId: number, message: string) => {
-            const t = performance.now().toFixed(1);
             setStatus(`Error: ${message}`);
             return;
         })

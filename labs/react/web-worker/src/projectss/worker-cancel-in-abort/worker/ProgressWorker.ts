@@ -48,7 +48,7 @@ export class ProgressWorker {
 
         let processed = 0;
         // CPU 부하용 변수 (dead-code 제거 방지)
-        let cpu = 0;
+        const cpu = 0;
         let chunkCount = 0;
 
         while (processed < totalItems) {

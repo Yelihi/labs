@@ -108,8 +108,8 @@ export function SearchWithNetworkAndWorker() {
 
             const startMsg: ToWorker = { type: "START", requestId: id, query: nextQuery, list };
             workerRef.current.postMessage(startMsg);
-        } catch (err: any) {
-            if (err?.name === "AbortError") {
+        } catch (err: unknown) {
+            if (typeof err === "object" && err !== null && "name" in err && err.name === "AbortError") {
                 setStatus("Fetch aborted");
                 return;
             }
