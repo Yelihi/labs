@@ -1,0 +1,11 @@
+{
+  "name": "@frontend-labs/lab-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/main.mjs",
+    "start": "node src/main.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "lint": "eslint . --max-warnings=0"
+  }
+}

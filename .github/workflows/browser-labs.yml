@@ -37,9 +37,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium and system libraries
         run: pnpm exec playwright install --with-deps chromium
-      - name: Lint Web Worker lab
+      - name: Lint Web Worker and local server
         if: matrix.framework == 'react-vite'
-        run: pnpm exec eslint labs/react/web-worker --max-warnings=0
+        run: pnpm exec eslint labs/react/web-worker apps/lab-server --max-warnings=0
       - name: Test worker behavior
         if: matrix.framework == 'react-vite'
         run: pnpm exec vitest run labs/react/web-worker/tests/*.test.ts

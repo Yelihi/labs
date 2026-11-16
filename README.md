@@ -58,3 +58,7 @@ Use `pnpm lab:doctor <id>`, `pnpm lab:run <id>`, and `pnpm lab:test <id>`.
 
 [Browser CI](https://github.com/Yelihi/labs/actions/workflows/browser-labs.yml) runs all JavaScript, React/Vite (including CSS), and Next.js lab browser tests in Chromium. React autocomplete and Web Worker tests cover interactions and real worker execution.
 Use `pnpm lab:test:browser javascript`, `pnpm lab:test:browser react-vite`, or `pnpm lab:test:browser next-app` locally.
+
+로컬 HTTP 실습 서버는 `pnpm dev:server`로 실행합니다. React 실습은 별도 터미널에서 `pnpm dev:react`로 실행하고,
+Network + Worker의 API 선택에서 모의 API와 로컬 HTTP API를 전환할 수 있습니다.
+실행·API·검증 방법은 [실습 서버 가이드](apps/lab-server/README.md)를 참고하세요.

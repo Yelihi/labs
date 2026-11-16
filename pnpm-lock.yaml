@@ -81,6 +81,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/lab-core
 
+  apps/lab-server: {}
+
   apps/next-app:
     dependencies:
       '@frontend-labs/lab-core':

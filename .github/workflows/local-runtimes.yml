@@ -78,6 +78,9 @@ jobs:
           pnpm lab:run cpp/runtime-basics
           pnpm lab:test cpp/runtime-basics
 
+      - name: Local lab server — HTTP tests
+        run: pnpm --filter @frontend-labs/lab-server test
+
       - name: CLI typecheck
         run: pnpm exec tsc --noEmit -p tools/lab-cli/tsconfig.json --ignoreDeprecations 6.0
 

@@ -150,3 +150,11 @@ Web Worker는 실제 200만 개 데이터로 초기화·검색·취소·최신 �
 Network + Worker 변형은 같은 페이지의 선택 버튼으로 실행하며, 모의 API 취소·Worker 취소·재검색·실습 전환도 검사합니다.
 Worker의 마지막 yield에서 발생하는 취소/요청 변경과 결과 상한은 Vitest 단위 테스트로도 검사합니다.
 나머지 기본 테스트는 페이지 제목·실험 영역 표시를 확인하는 smoke test입니다.
+
+## 로컬 HTTP 실습 서버
+
+`pnpm dev:server`는 Node.js 실습 서버를 `127.0.0.1:3001`에 실행합니다.
+별도 터미널에서 `pnpm dev:react`를 실행한 뒤 Web Worker 페이지의 Network + Worker에서 API를 선택합니다.
+로컬 HTTP API에서는 응답 지연과 서버 오류 재현을 조절할 수 있습니다. API 변경은 진행 중인 작업과 결과를 초기화합니다.
+React 브라우저 테스트는 두 서버를 자동으로 실행하며, 다른 브라우저 앱에는 이 서버를 추가하지 않습니다.
+자세한 내용은 [서버 가이드](../apps/lab-server/README.md)를 참고하세요.

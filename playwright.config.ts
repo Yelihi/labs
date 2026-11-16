@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const serverCommand = process.env.LAB_TEST_SERVER_COMMAND ?? 'pnpm dev:react';
 const baseURL = process.env.LAB_TEST_BASE_URL ?? 'http://localhost:5173';
 
 export default defineConfig({
@@ -20,12 +21,24 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  webServer: {
-    command: process.env.LAB_TEST_SERVER_COMMAND ?? 'pnpm dev:react',
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: serverCommand,
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    ...(serverCommand === 'pnpm dev:react'
+      ? [
+          {
+            command: 'pnpm dev:server',
+            url: 'http://127.0.0.1:3001/health',
+            reuseExistingServer: !process.env.CI,
+            timeout: 30_000,
+          },
+        ]
+      : []),
+  ],
   projects: [
     {
       name: 'chromium',

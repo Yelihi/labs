@@ -23,8 +23,10 @@ pnpm dev:react
 - **Worker only**: 기존 200만 항목의 Worker 검색·취소 실습
 - **Network + Worker**: 검색어 입력 → 200ms debounce → 300~1,000ms 모의 API 응답 → 실제 Worker 처리
 
-Network + Worker는 외부 서버를 호출하지 않습니다. 검색어를 포함하는 20만 항목을 생성하므로 모든 항목이 검색 결과에 포함됩니다.
-`Cancel current request`는 대기 중인 debounce, 모의 API 요청 또는 실행 중인 Worker 작업을 취소합니다.
+Network + Worker는 모의 API(서버 불필요)와 로컬 HTTP API를 선택할 수 있습니다.
+로컬 HTTP API는 별도 터미널에서 `pnpm dev:server`를 실행해야 합니다. [서버 가이드](../../../apps/lab-server/README.md)를 참고하세요.
+두 API 모두 검색어를 포함하는 20만 항목을 생성하므로 모든 항목이 검색 결과에 포함됩니다.
+`Cancel current request`는 대기 중인 debounce, API 요청 또는 실행 중인 Worker 작업을 취소합니다.
 실습을 전환하면 이전 요청과 Worker를 정리하며, 돌아오면 초기 상태로 시작합니다.
 
 ## How to test
@@ -39,7 +41,7 @@ Existing plans, notes, and results are preserved in [docs/](./docs/).
 
 ## Chromium 동작 검증
 
-브라우저 테스트는 두 실습의 실제 Web Worker를 실행합니다.
+브라우저 테스트는 두 실습의 실제 Web Worker를 실행하며, Network + Worker는 두 API 모드를 모두 검증합니다.
 Worker나 검색 결과를 모킹하지 않으며, 기본 200만 개 데이터와 CPU 부하 설정을 그대로 사용합니다.
 
 - 초기화 완료, 필터링 및 10,000개 결과 상한
@@ -61,5 +63,5 @@ pnpm exec vitest run labs/react/web-worker/tests/*.test.ts
 메시지 인자 전달, 중복 리스너 등록, 해제와 Worker 종료도 단위 테스트로 확인합니다.
 Lint와 두 종류 테스트 모두 GitHub Actions의 Browser labs / react-vite 작업에서 실행합니다.
 
-2026-11-15 로컬 검증: macOS arm64, Node.js 26.0.0, pnpm 10.33.0.
-`pnpm lab:test:browser react-vite` 16개 및 위 Vitest 테스트 7개가 종료 코드 0으로 통과했습니다.
+2026-11-16 로컬 검증: macOS arm64, Node.js 26.0.0, pnpm 10.33.0.
+`pnpm lab:test:browser react-vite` 22개 및 위 Vitest 테스트 7개가 종료 코드 0으로 통과했습니다.

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { localSearchApi } from "./api/local";
 import { fakeSearchApi } from "./api/mock";
 import type { FromWorker, ToWorker } from "./worker/types";
 
@@ -6,9 +7,27 @@ function createWorker() {
     return new Worker(new URL("./worker/worker.ts", import.meta.url), { type: "module" });
 }
 
+type ApiMode = 'mock' | 'local';
+
 export function SearchWithNetworkAndWorker() {
+    const [mode, setMode] = useState<ApiMode>('mock');
+    return (
+        <>
+            <label htmlFor="worker-api">API</label>
+            <select id="worker-api" value={mode} onChange={(event) => setMode(event.target.value as ApiMode)}>
+                <option value="mock">모의 API</option>
+                <option value="local">로컬 HTTP API</option>
+            </select>
+            <SearchExperiment key={mode} mode={mode} />
+        </>
+    );
+}
+
+function SearchExperiment({ mode }: { mode: ApiMode }) {
     const workerRef = useRef<Worker | null>(null);
 
+    const [delayMs, setDelayMs] = useState(500);
+    const [fail, setFail] = useState(false);
     const [query, setQuery] = useState("");
     const [status, setStatus] = useState("Idle");
     const [indices, setIndices] = useState<Uint32Array>(new Uint32Array());
@@ -99,14 +118,16 @@ export function SearchWithNetworkAndWorker() {
 
         try {
             const t0 = performance.now();
-            const { list, delayMs } = await fakeSearchApi({ query: nextQuery, signal: ac.signal });
+            const { list, delayMs: responseDelayMs } = await (mode === 'mock'
+                ? fakeSearchApi({ query: nextQuery, signal: ac.signal })
+                : localSearchApi({ query: nextQuery, signal: ac.signal, delayMs, fail }));
             const t1 = performance.now();
 
             // stale fetch drop
             if (id !== latestIdRef.current || ac.signal.aborted) return;
 
             setItems(list);
-            setStatus(`Fetched in ${(t1 - t0).toFixed(1)}ms (delay=${delayMs.toFixed(0)}ms). Worker processing...`);
+            setStatus(`Fetched in ${(t1 - t0).toFixed(1)}ms (delay=${responseDelayMs.toFixed(0)}ms). Worker processing...`);
 
             const startMsg: ToWorker = { type: "START", requestId: id, query: nextQuery, list };
             workerRef.current.postMessage(startMsg);
@@ -138,12 +159,20 @@ export function SearchWithNetworkAndWorker() {
         return () => {
             if (debounceRef.current !== null) clearTimeout(debounceRef.current);
         };
-    }, [query]);
+    }, [query, delayMs, fail]);
 
     return (
         <div style={{ fontFamily: "system-ui", padding: 16 }}>
             <h2>Network + Worker Cancel Strategy</h2>
-            <p>AbortController로 취소 가능한 모의 네트워크 응답(20만 항목)을 실제 Worker에서 처리합니다.</p>
+            <p>선택한 API의 응답(20만 항목)을 실제 Worker에서 처리합니다. API 전환 시 진행 중인 작업과 결과를 초기화합니다.</p>
+            {mode === 'local' && (
+                <div>
+                    <p>별도 터미널에서 <code>pnpm dev:server</code>를 실행하세요.</p>
+                    <label>응답 지연(ms) <input type="number" min={0} max={5000} value={delayMs}
+                        onChange={(event) => setDelayMs(Number(event.target.value))} /></label>
+                    <label><input type="checkbox" checked={fail} onChange={(event) => setFail(event.target.checked)} />서버 오류 재현</label>
+                </div>
+            )}
 
             <input
                 value={query}

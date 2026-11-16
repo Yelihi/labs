@@ -36,7 +36,8 @@
     "lab:routes": "pnpm --filter @frontend-labs/lab-cli lab -- routes",
     "lab:run": "pnpm --filter @frontend-labs/lab-cli lab -- run",
     "lab:doctor": "pnpm --filter @frontend-labs/lab-cli lab -- doctor",
-    "lab:test:browser": "pnpm --filter @frontend-labs/lab-cli lab -- test-browser"
+    "lab:test:browser": "pnpm --filter @frontend-labs/lab-cli lab -- test-browser",
+    "dev:server": "pnpm --filter @frontend-labs/lab-server dev"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
