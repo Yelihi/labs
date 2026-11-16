@@ -23,7 +23,11 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: serverCommand,
+      // Run Vite directly so Turbo's persistent child cannot outlive the test run.
+      command:
+        serverCommand === 'pnpm dev:react'
+          ? 'pnpm --filter @frontend-labs/react-vite dev'
+          : serverCommand,
       url: baseURL,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
